@@ -1,0 +1,38 @@
+using System.Linq;
+
+namespace Cake.Wallpaper.Manager.Core.WallpaperRepositories;
+
+public class DiskRepository : Interfaces.IWallpaperRepository {
+    public async IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync() {
+        /*var list = new List<Models.Wallpaper>();
+        list.Add(new Models.Wallpaper() {
+            FilePath = @"/home/zac/Pictures/Wallpapers/steinsgategroup.jpeg",
+            Franchise = @"Steins Gate"
+        }); 
+        list.Add(new Models.Wallpaper() {
+               FilePath = @"/home/zac/Pictures/Wallpapers/raven_dc_comic_fanart_2020_4k_hd_superheroes.jpg",
+               Franchise = @"Teen Titans"
+           });
+        list.Add(new Models.Wallpaper() {
+            FilePath = @"/home/zac/Pictures/Wallpapers/DzkggKsX4AAlRPi.jpeg",
+            Franchise = @"Fire Emblem"
+        });
+        list.Add(new Models.Wallpaper() {
+            FilePath = @"/home/zac/Pictures/Wallpapers/training_by_ian_navarro-d804ifo_[L3][x10.00].png",
+            Franchise = @"Avatar Korra"
+        });
+        foreach (var item in list) {
+            yield return item;
+        }*/
+        foreach (var file in new DirectoryInfo("/home/zac/Pictures/Wallpapers/").EnumerateFiles()) {
+            yield return new Models.Wallpaper() {
+                FilePath = file.FullName,
+                Name = file.Name,
+            };
+        }
+    }
+
+    public IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync(string searchTerm) {
+        throw new NotImplementedException();
+    }
+}

@@ -1,0 +1,85 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Cake.Wallpaper.Manager.GUI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="using:Cake.Wallpaper.Manager.GUI.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
+        x:Class="Cake.Wallpaper.Manager.GUI.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Cake.Wallpaper.Manager.GUI"
+        TransparencyLevelHint="Blur"
+        Background="#C0000000"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+
+    <Panel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+        <TabControl VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+            <TabItem Header="Image Tagging">
+                <Grid ColumnDefinitions="* *" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <Grid VerticalAlignment="Stretch" RowDefinitions="auto * auto" ColumnDefinitions="*"
+                          HorizontalAlignment="Stretch" DockPanel.Dock="Left">
+                        <TextBox Watermark="Search..." VerticalAlignment="Top" HorizontalAlignment="Stretch" />
+                        <ListBox VirtualizationMode="Simple" SelectedItem="{Binding SelectedImage}" Grid.Row="1"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent"
+                                 ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Stretch"
+                                 Items="{Binding CurrentPageData}">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                        </ListBox>
+                        <StackPanel Grid.Row="2" VerticalAlignment="Bottom" Orientation="Horizontal">
+                            <Button Command="{Binding PreviousImagePage}">Previous</Button>
+                            <Button HorizontalAlignment="Right" Command="{Binding NextImagePage}">Next</Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Grid.Column="1" Margin="5" Orientation="Vertical"
+                                HorizontalAlignment="Right">
+                        <Image MaxWidth="{Binding SelectedImage.Image.Size.Width, FallbackValue=400}"
+                               Source="{Binding SelectedImage.Image}"
+                               Grid.ColumnSpan="2"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Top"
+                               Margin="0 4">
+                        </Image>
+                        <Grid HorizontalAlignment="Stretch" ColumnDefinitions="Auto *"
+                              RowDefinitions="* auto auto auto auto">
+
+                            <Label VerticalAlignment="Center" Margin="0 3" Grid.Row="1">Name</Label>
+                            <TextBox Margin="0 3" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top"
+                                     Text="{Binding SelectedImage.FileName}">
+                            </TextBox>
+                            <Label VerticalAlignment="Center" Margin="0 3" Grid.Row="2">Franchise</Label>
+                            <TextBox Grid.Row="2" Grid.Column="1" Margin="0 3"
+                                     Text="{Binding SelectedImage.Franchise}">
+                            </TextBox>
+                            <Expander Header="People" Grid.Row="3" Grid.ColumnSpan="2" ExpandDirection="Down">
+                                <StackPanel>
+                                    <ListBox SelectedItem="{Binding SelectedImage.SelectedPerson}"
+                                             HorizontalAlignment="Stretch"
+                                             Items="{Binding SelectedImage.People}">
+                                    </ListBox>
+                                    <Button Click="Button_OnClick">Remove</Button>
+                                </StackPanel>
+                            </Expander>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="People Management">
+
+            </TabItem>
+        </TabControl>
+
+    </Panel>
+
+</Window>

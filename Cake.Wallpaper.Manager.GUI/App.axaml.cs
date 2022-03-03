@@ -1,0 +1,23 @@
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Markup.Xaml;
+using Cake.Wallpaper.Manager.GUI.ViewModels;
+using Cake.Wallpaper.Manager.GUI.Views;
+
+namespace Cake.Wallpaper.Manager.GUI {
+    public partial class App : Application {
+        public override void Initialize() {
+            AvaloniaXamlLoader.Load(this);
+        }
+
+        public override void OnFrameworkInitializationCompleted() {
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
+                desktop.MainWindow = new MainWindow {
+                    DataContext = new MainWindowViewModel(),
+                };
+            }
+
+            base.OnFrameworkInitializationCompleted();
+        }
+    }
+}

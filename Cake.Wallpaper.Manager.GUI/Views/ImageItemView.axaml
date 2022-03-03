@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:Cake.Wallpaper.Manager.GUI.ViewModels"
+
+             mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="450"
+             x:Class="Cake.Wallpaper.Manager.GUI.Views.ImageItemView">
+    <Design.DataContext>
+        <viewModels:ImageItemViewModel />
+    </Design.DataContext>
+    <StackPanel Spacing="5" Width="400">
+        <Border CornerRadius="4" ClipToBounds="true">
+            <Panel Background="#FF0000">
+                <Border CornerRadius="2" BorderThickness="{Binding ImageBorderThickness}" ClipToBounds="true"
+                        Background="#FF0000">
+                    <Image HorizontalAlignment="Center" Stretch="Uniform" Source="{Binding ThumbnailImage, FallbackValue='s'}" />
+                </Border>
+                <Panel Height="200"
+                       IsVisible="{Binding ThumbnailImage.Size.Width, FallbackValue=2, Converter={x:Static ObjectConverters.IsNull}}">
+                    <Label HorizontalAlignment="Center" VerticalAlignment="Center">NOT FOUND</Label>
+                </Panel>
+            </Panel>
+        </Border>
+        <TextBlock Text="{Binding FileName}" HorizontalAlignment="Center" />
+        <TextBlock Text="{Binding Franchise}" HorizontalAlignment="Center" />
+    </StackPanel>
+</UserControl>

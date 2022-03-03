@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="Cake.Wallpaper.Manager.GUI/App.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
+        <entry key="Cake.Wallpaper.Manager.GUI/Forms/Main.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
+        <entry key="Cake.Wallpaper.Manager.GUI/MainWindow.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
+        <entry key="Cake.Wallpaper.Manager.GUI/Views/ImageItem.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
+        <entry key="Cake.Wallpaper.Manager.GUI/Views/ImageItemView.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
+        <entry key="Cake.Wallpaper.Manager.GUI/Views/MainWindow.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
+        <entry key="Cake.Wallpaper.Manager.GUI/Views/PersonSelectionView.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
+        <entry key="Cake.Wallpaper.Manager.GUI/Views/PersonView.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
+      </map>
+    </option>
+  </component>
+</project>
