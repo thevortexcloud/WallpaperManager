@@ -1,4 +1,5 @@
 using System.Linq;
+using Cake.Wallpaper.Manager.Core.Models;
 
 namespace Cake.Wallpaper.Manager.Core.WallpaperRepositories;
 
@@ -28,11 +29,42 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
             yield return new Models.Wallpaper() {
                 FilePath = file.FullName,
                 Name = file.Name,
+                Franchises = new List<Franchise>() {
+                    new Franchise() {
+                        Name = "Fire Emblem",
+                        ID = 1,
+                        ChildFranchises = new List<ChildFranchise>() {
+                            new ChildFranchise() {
+                                Name = "Fire Emblem Awakening",
+                                Parent = 1,
+                                ID = 2
+                            }
+                        }
+                    }
+                }
             };
         }
     }
 
-    public IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync(string searchTerm) {
-        throw new NotImplementedException();
+    public async IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync(string searchTerm) {
+        foreach (var file in new DirectoryInfo("/home/zac/Pictures/Wallpapers/").EnumerateFiles(searchTerm)) {
+            yield return new Models.Wallpaper() {
+                FilePath = file.FullName,
+                Name = file.Name,
+                Franchises = new List<Franchise>() {
+                    new Franchise() {
+                        Name = "Fire Emblem",
+                        ID = 1,
+                        ChildFranchises = new List<ChildFranchise>() {
+                            new ChildFranchise() {
+                                Name = "Fire Emblem Awakening",
+                                Parent = 1,
+                                ID = 2
+                            }
+                        }
+                    }
+                }
+            };
+        }
     }
 }

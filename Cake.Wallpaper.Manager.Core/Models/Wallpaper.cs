@@ -16,7 +16,7 @@ public class Wallpaper {
         }
     }
 
-    public string? Franchise { get; init; }
+    public List<Franchise>? Franchises { get; init; }
     public List<Person>? People { get; init; }
 
     public async Task<Stream?> LoadImageAsync() {

@@ -23,8 +23,10 @@
                 <Grid ColumnDefinitions="* *" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                     <Grid VerticalAlignment="Stretch" RowDefinitions="auto * auto" ColumnDefinitions="*"
                           HorizontalAlignment="Stretch" DockPanel.Dock="Left">
-                        <TextBox Watermark="Search..." VerticalAlignment="Top" HorizontalAlignment="Stretch" />
-                        <ListBox VirtualizationMode="Simple" SelectedItem="{Binding SelectedImage}" Grid.Row="1"
+                        <TextBox Text="{Binding SearchText}" Watermark="Search..." VerticalAlignment="Top"
+                                 HorizontalAlignment="Stretch" />
+                        <ListBox EffectiveViewportChanged="Layoutable_OnEffectiveViewportChanged"
+                                 VirtualizationMode="Simple" SelectedItem="{Binding SelectedImage}" Grid.Row="1"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent"
                                  ScrollViewer.VerticalScrollBarVisibility="Hidden"
                                  HorizontalAlignment="Center"
@@ -36,9 +38,11 @@
                                 </ItemsPanelTemplate>
                             </ListBox.ItemsPanel>
                         </ListBox>
-                        <StackPanel Grid.Row="2" VerticalAlignment="Bottom" Orientation="Horizontal">
+                        <StackPanel Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                                    Orientation="Horizontal">
                             <Button Command="{Binding PreviousImagePage}">Previous</Button>
                             <Button HorizontalAlignment="Right" Command="{Binding NextImagePage}">Next</Button>
+                            <Label Content="{Binding PageInfoString}" />
                         </StackPanel>
                     </Grid>
 
@@ -58,19 +62,36 @@
                             <TextBox Margin="0 3" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top"
                                      Text="{Binding SelectedImage.FileName}">
                             </TextBox>
-                            <Label VerticalAlignment="Center" Margin="0 3" Grid.Row="2">Franchise</Label>
-                            <TextBox Grid.Row="2" Grid.Column="1" Margin="0 3"
-                                     Text="{Binding SelectedImage.Franchise}">
-                            </TextBox>
-                            <Expander Header="People" Grid.Row="3" Grid.ColumnSpan="2" ExpandDirection="Down">
-                                <StackPanel>
-                                    <ListBox SelectedItem="{Binding SelectedImage.SelectedPerson}"
-                                             HorizontalAlignment="Stretch"
-                                             Items="{Binding SelectedImage.People}">
-                                    </ListBox>
-                                    <Button Click="Button_OnClick">Remove</Button>
-                                </StackPanel>
-                            </Expander>
+
+                            <ScrollViewer Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
+                                <Grid Grid.RowDefinitions="auto auto">
+                                    <Expander Grid.Row="0" Grid.Column="0" Header="Franchises"
+                                              IsExpanded="True" HorizontalAlignment="Stretch">
+                                        <StackPanel>
+                                            <TextBox HorizontalAlignment="Stretch" Watermark="Search..." />
+                                            <ListBox HorizontalAlignment="Stretch"
+                                                     Items="{Binding SelectedImage.Franchises}">
+                                            </ListBox>
+                                        </StackPanel>
+                                    </Expander>
+                                    <Expander IsExpanded="True" HorizontalAlignment="Stretch" Header="People"
+                                              Grid.Row="1"
+                                              Grid.ColumnSpan="2"
+                                              ExpandDirection="Down">
+                                        <StackPanel HorizontalAlignment="Stretch">
+                                            <ListBox SelectedItem="{Binding SelectedImage.SelectedPerson}"
+                                                     HorizontalAlignment="Stretch"
+                                                     Items="{Binding SelectedImage.People}">
+                                            </ListBox>
+                                            <Button HorizontalContentAlignment="Center" HorizontalAlignment="Stretch"
+                                                    Click="Button_OnClick">
+                                                Remove
+                                            </Button>
+                                            <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">Add</Button>
+                                        </StackPanel>
+                                    </Expander>
+                                </Grid>
+                            </ScrollViewer>
                         </Grid>
                     </StackPanel>
                 </Grid>

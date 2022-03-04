@@ -14,7 +14,8 @@
             <Panel Background="#FF0000">
                 <Border CornerRadius="2" BorderThickness="{Binding ImageBorderThickness}" ClipToBounds="true"
                         Background="#FF0000">
-                    <Image HorizontalAlignment="Center" Stretch="Uniform" Source="{Binding ThumbnailImage, FallbackValue='s'}" />
+                    <Image HorizontalAlignment="Center" Stretch="Uniform"
+                           Source="{Binding ThumbnailImage, FallbackValue='s'}" />
                 </Border>
                 <Panel Height="200"
                        IsVisible="{Binding ThumbnailImage.Size.Width, FallbackValue=2, Converter={x:Static ObjectConverters.IsNull}}">
@@ -23,6 +24,6 @@
             </Panel>
         </Border>
         <TextBlock Text="{Binding FileName}" HorizontalAlignment="Center" />
-        <TextBlock Text="{Binding Franchise}" HorizontalAlignment="Center" />
+        <TextBlock Text="{Binding PrimaryFranchise , FallbackValue=''}" HorizontalAlignment="Center" />
     </StackPanel>
 </UserControl>

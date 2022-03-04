@@ -3,13 +3,13 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using ReactiveUI;
 using Avalonia.Media.Imaging;
 using Avalonia.Visuals.Media.Imaging;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SkiaSharp;
+using Cake.Wallpaper.Manager.Core.Models;
 
 namespace Cake.Wallpaper.Manager.GUI.ViewModels;
 
@@ -35,10 +35,15 @@ public class ImageItemViewModel : ViewModelBase {
         set => this.RaiseAndSetIfChanged(ref this._image, value);
     }
 
-    public string? Franchise => this._wallpaper.Franchise;
+    public ObservableCollection<CheckboxListItemViewModel>? Franchises => new ObservableCollection<CheckboxListItemViewModel>(this._wallpaper?.Franchises?.Select(o => new CheckboxListItemViewModel() {
+        Label = o.Name,
+        Value = o,
+    }));
 
     public string? FileName => this._wallpaper.FileName;
     public string? Name => this._wallpaper.Name;
+
+    public Franchise PrimaryFranchise => this?._wallpaper?.Franchises.FirstOrDefault();
 
 
     public Thickness ImageBorderThickness {
@@ -59,7 +64,11 @@ public class ImageItemViewModel : ViewModelBase {
 
     public PersonViewModel SelectedPerson { get; set; }
 
-    public async Task LoadImageAsync() {
+    public async Task LoadImageAsync(CancellationToken token) {
+        if (token.IsCancellationRequested) {
+            return;
+        }
+
         var img = await this._wallpaper.LoadImageAsync();
         if (img is null) {
             return;
@@ -70,7 +79,15 @@ public class ImageItemViewModel : ViewModelBase {
             //width = codec.Info.Width;
             //height = codec.Info.Height;
             await Task.Run(() => {
+                if (token.IsCancellationRequested) {
+                    return;
+                }
+
                 this.ThumbnailImage = Bitmap.DecodeToWidth(img, 400, BitmapInterpolationMode.MediumQuality);
+                if (token.IsCancellationRequested) {
+                    return;
+                }
+
                 img.Seek(0, SeekOrigin.Begin);
                 this.Image = this.ThumbnailImage.Size.AspectRatio <= 1 ? Bitmap.DecodeToHeight(img, 400) : Bitmap.DecodeToWidth(img, 840);
             });
