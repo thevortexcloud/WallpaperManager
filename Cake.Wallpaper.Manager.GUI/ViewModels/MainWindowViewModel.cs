@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
+using Cake.Wallpaper.Manager.Core.Interfaces;
 using Cake.Wallpaper.Manager.Core.WallpaperRepositories;
 using DynamicData;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,14 +16,20 @@ using ReactiveUI;
 
 namespace Cake.Wallpaper.Manager.GUI.ViewModels {
     public class MainWindowViewModel : ViewModelBase {
+        #region Private variables
         private string _searchText;
         private ImageItemViewModel _selectedImage;
         private CancellationTokenSource _cancellationTokenSource;
         private int _currentPage = 1;
+        private IWallpaperRepository _wallpaperRepository;
+        #endregion
+
+        #region Private properties
         private SemaphoreSlim _slim = new SemaphoreSlim(1, 1);
-
         private bool IsLoadingImages { get; set; }
+        #endregion
 
+        #region Public properties
         public int CurrentPage {
             get => this._currentPage;
             private set {
@@ -43,10 +50,16 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         private List<ImageItemViewModel> Images { get; } = new List<ImageItemViewModel>();
         public ObservableCollection<ImageItemViewModel> CurrentPageData { get; } = new ObservableCollection<ImageItemViewModel>();
 
+        public ImageItemViewModel SelectedImage {
+            get => this._selectedImage;
+            set => this.RaiseAndSetIfChanged(ref this._selectedImage, value);
+        }
+
         public string SearchText {
             get => this._searchText;
             set => this.RaiseAndSetIfChanged(ref this._searchText, value);
         }
+        #endregion
 
         public MainWindowViewModel() {
             this.WhenAnyValue(x => x.SearchText)
@@ -56,6 +69,8 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
 
             NextImagePage = ReactiveCommand.Create(NextPage);
             PreviousImagePage = ReactiveCommand.Create(PreviousPage);
+
+            this._wallpaperRepository = new DiskRepository();
         }
 
         private async void NextPage() {
@@ -84,7 +99,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             }
         }
 
-        public async void DoSearch(string term) {
+        private async void DoSearch(string term) {
             foreach (var data in CurrentPageData) {
                 data.Image?.Dispose();
                 data.ThumbnailImage?.Dispose();
@@ -96,11 +111,11 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             this.Images.Clear();
             this.CurrentPage = 0;
             if (string.IsNullOrWhiteSpace(term)) {
-                await foreach (var wallpaper in new DiskRepository().RetrieveWallpapersAsync()) {
+                await foreach (var wallpaper in this._wallpaperRepository.RetrieveWallpapersAsync()) {
                     this.Images.Add(new ImageItemViewModel(wallpaper));
                 }
             } else {
-                await foreach (var wallpaper in new DiskRepository().RetrieveWallpapersAsync(term)) {
+                await foreach (var wallpaper in this._wallpaperRepository.RetrieveWallpapersAsync(term)) {
                     this.Images.Add(new ImageItemViewModel(wallpaper));
                 }
             }
@@ -159,11 +174,6 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             } finally {
                 IsLoadingImages = false;
             }
-        }
-
-        public ImageItemViewModel SelectedImage {
-            get => this._selectedImage;
-            set => this.RaiseAndSetIfChanged(ref this._selectedImage, value);
         }
     }
 }
