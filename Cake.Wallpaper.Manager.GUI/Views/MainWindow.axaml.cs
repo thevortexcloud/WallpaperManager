@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -9,13 +10,8 @@ namespace Cake.Wallpaper.Manager.GUI.Views {
             InitializeComponent();
         }
 
-        private void Button_OnClick(object? sender, RoutedEventArgs e) {
-            if (this.DataContext is MainWindowViewModel mainWindowViewModel) {
-                mainWindowViewModel.SelectedImage?.People?.Remove(mainWindowViewModel.SelectedImage.SelectedPerson);
-            }
-        }
-
-        private void Layoutable_OnEffectiveViewportChanged(object? sender, EffectiveViewportChangedEventArgs e) {
+        private void TopLevel_OnOpened(object? sender, EventArgs e) {
+            (DataContext as MainWindowViewModel).LoadInitialData(sender, e);
         }
     }
 }
