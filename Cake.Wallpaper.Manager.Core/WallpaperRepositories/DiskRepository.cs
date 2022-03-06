@@ -33,10 +33,10 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
                     new Franchise() {
                         Name = "Fire Emblem",
                         ID = 1,
-                        ChildFranchises = new List<ChildFranchise>() {
-                            new ChildFranchise() {
+                        ChildFranchises = new List<Franchise>() {
+                            new Franchise() {
                                 Name = "Fire Emblem Awakening",
-                                Parent = 1,
+                                ParentID = 1,
                                 ID = 2
                             }
                         }
@@ -55,10 +55,10 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
                     new Franchise() {
                         Name = "Fire Emblem",
                         ID = 1,
-                        ChildFranchises = new List<ChildFranchise>() {
-                            new ChildFranchise() {
+                        ChildFranchises = new List<Franchise>() {
+                            new Franchise() {
                                 Name = "Fire Emblem Awakening",
-                                Parent = 1,
+                                ParentID = 1,
                                 ID = 2
                             }
                         }
@@ -66,5 +66,17 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
                 }
             };
         }
+    }
+
+    public Task SaveWallpaperInfoAsync(Models.Wallpaper wallpaper) {
+        throw new NotImplementedException();
+    }
+
+    public Task SavePersonInfoAsync(Person person) {
+        throw new NotImplementedException();
+    }
+
+    public Task SaveFranchiseInfoAsync(Franchise franchise) {
+        throw new NotImplementedException();
     }
 }

@@ -4,13 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="using:Cake.Wallpaper.Manager.GUI.Views"
+        xmlns:models="clr-namespace:Cake.Wallpaper.Manager.Core.Models;assembly=Cake.Wallpaper.Manager.Core"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
         x:Class="Cake.Wallpaper.Manager.GUI.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="Cake.Wallpaper.Manager.GUI"
         TransparencyLevelHint="Blur"
         Background="#C0000000"
-        ExtendClientAreaToDecorationsHint="True">
+        ExtendClientAreaToDecorationsHint="True" Opened="TopLevel_OnOpened">
 
     <Design.DataContext>
         <vm:MainWindowViewModel />
@@ -25,13 +26,13 @@
                           HorizontalAlignment="Stretch" DockPanel.Dock="Left">
                         <TextBox Text="{Binding SearchText}" Watermark="Search..." VerticalAlignment="Top"
                                  HorizontalAlignment="Stretch" />
-                        <ListBox EffectiveViewportChanged="Layoutable_OnEffectiveViewportChanged"
-                                 VirtualizationMode="Simple" SelectedItem="{Binding SelectedImage}" Grid.Row="1"
-                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent"
-                                 ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                                 HorizontalAlignment="Center"
-                                 VerticalAlignment="Stretch"
-                                 Items="{Binding CurrentPageData}">
+                        <ListBox
+                            VirtualizationMode="Simple" SelectedItem="{Binding SelectedImage}" Grid.Row="1"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent"
+                            ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Stretch"
+                            Items="{Binding CurrentPageData}">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <WrapPanel Orientation="Horizontal" />
@@ -63,15 +64,26 @@
                                      Text="{Binding SelectedImage.FileName}">
                             </TextBox>
 
-                            <ScrollViewer Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
+                            <ScrollViewer HorizontalAlignment="Stretch" Grid.Row="2" Grid.Column="0"
+                                          Grid.ColumnSpan="2">
                                 <Grid Grid.RowDefinitions="auto auto">
                                     <Expander Grid.Row="0" Grid.Column="0" Header="Franchises"
                                               IsExpanded="True" HorizontalAlignment="Stretch">
+
+
                                         <StackPanel>
                                             <TextBox HorizontalAlignment="Stretch" Watermark="Search..." />
-                                            <ListBox HorizontalAlignment="Stretch"
-                                                     Items="{Binding SelectedImage.Franchises}">
-                                            </ListBox>
+                                            <ItemsControl
+                                                HorizontalAlignment="Stretch"
+                                                Items="{Binding SelectedImage.Franchises}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <TreeDataTemplate
+                                                        DataType="{x:Type models:Franchise}"
+                                                        ItemsSource="{ Binding   ChildFranchises}">
+                                                        <ContentControl Content="{Binding Name}" />
+                                                    </TreeDataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
                                         </StackPanel>
                                     </Expander>
                                     <Expander IsExpanded="True" HorizontalAlignment="Stretch" Header="People"
@@ -79,12 +91,11 @@
                                               Grid.ColumnSpan="2"
                                               ExpandDirection="Down">
                                         <StackPanel HorizontalAlignment="Stretch">
-                                            <ListBox SelectedItem="{Binding SelectedImage.SelectedPerson}"
-                                                     HorizontalAlignment="Stretch"
-                                                     Items="{Binding SelectedImage.People}">
-                                            </ListBox>
-                                            <Button HorizontalContentAlignment="Center" HorizontalAlignment="Stretch"
-                                                    Click="Button_OnClick">
+                                            <ItemsControl
+                                                HorizontalAlignment="Stretch"
+                                                Items="{Binding SelectedImage.People}">
+                                            </ItemsControl>
+                                            <Button HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
                                                 Remove
                                             </Button>
                                             <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">Add</Button>

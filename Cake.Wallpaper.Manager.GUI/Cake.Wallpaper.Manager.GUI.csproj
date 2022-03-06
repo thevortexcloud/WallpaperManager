@@ -26,9 +26,15 @@
         <PackageReference Include="Avalonia.Desktop" Version="0.10.10" />
         <PackageReference Include="Avalonia.Diagnostics" Version="0.10.10" />
         <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.10" />
+        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
         <PackageReference Include="XamlNameReferenceGenerator" Version="1.3.4" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Cake.Wallpaper.Manager.Core\Cake.Wallpaper.Manager.Core.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Update="Views\FranchiseSelectListItemView..cs">
+        <DependentUpon>FranchiseSelectListItemView.axaml</DependentUpon>
+      </Compile>
     </ItemGroup>
 </Project>
