@@ -4,12 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:Cake.Wallpaper.Manager.GUI.ViewModels"
              mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="200"
-             x:Class="Cake.Wallpaper.Manager.GUI.Views.CheckboxListItemView">
+             x:Class="Cake.Wallpaper.Manager.GUI.Views.FranchiseSelectListItemView">
     <Design.DataContext>
-        <viewModels:CheckboxListItemViewModel />
+        <viewModels:FranchiseSelectListItemViewModel />
     </Design.DataContext>
-    <Grid ColumnDefinitions="auto auto">
-        <Label VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0 0 2 0" Content="{Binding Label}" />
+    <Grid ColumnDefinitions="auto *" HorizontalAlignment="Stretch" RowDefinitions="Auto *">
+        <Label VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0 0 2 0" Content="{Binding Name}" />
         <CheckBox HorizontalAlignment="Right" Grid.Column="1" IsChecked="{Binding Selected}" />
+        <ItemsControl Margin="10 0 0 0" Grid.ColumnSpan="2" Grid.Row="1" Items="{Binding ChildFranchises }">
+
+        </ItemsControl>
     </Grid>
 </UserControl>

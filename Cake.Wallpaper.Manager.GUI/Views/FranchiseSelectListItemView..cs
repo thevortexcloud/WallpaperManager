@@ -4,8 +4,8 @@ using Avalonia.Markup.Xaml;
 
 namespace Cake.Wallpaper.Manager.GUI.Views;
 
-public partial class CheckboxListItemView : UserControl {
-    public CheckboxListItemView() {
+public partial class FranchiseSelectListItemView : UserControl {
+    public FranchiseSelectListItemView() {
         InitializeComponent();
     }
 
