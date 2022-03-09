@@ -1,3 +1,5 @@
+using Cake.Wallpaper.Manager.Core.Models;
+
 namespace Cake.Wallpaper.Manager.Core.Interfaces;
 
 public interface IWallpaperRepository {
@@ -14,6 +16,10 @@ public interface IWallpaperRepository {
     /// <returns></returns>
     public IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync(string searchTerm);
 
+    public IAsyncEnumerable<Models.Person> RetrievePeopleAsync();
+    public IAsyncEnumerable<Franchise> RetrieveFranchises();
+    public IAsyncEnumerable<Franchise> RetrieveFranchises(string searchTerm);
+    public IAsyncEnumerable<Franchise> RetrieveFranchisesForPerson(int personID);
     public Task SaveWallpaperInfoAsync(Models.Wallpaper wallpaper);
     public Task SavePersonInfoAsync(Models.Person person);
     public Task SaveFranchiseInfoAsync(Models.Franchise franchise);

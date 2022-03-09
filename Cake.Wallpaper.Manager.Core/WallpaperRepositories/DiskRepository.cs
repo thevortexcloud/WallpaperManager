@@ -33,7 +33,7 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
                     new Franchise() {
                         Name = "Fire Emblem",
                         ID = 1,
-                        ChildFranchises = new List<Franchise>() {
+                        ChildFranchises = new HashSet<Franchise>() {
                             new Franchise() {
                                 Name = "Fire Emblem Awakening",
                                 ParentID = 1,
@@ -55,7 +55,7 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
                     new Franchise() {
                         Name = "Fire Emblem",
                         ID = 1,
-                        ChildFranchises = new List<Franchise>() {
+                        ChildFranchises = new HashSet<Franchise>() {
                             new Franchise() {
                                 Name = "Fire Emblem Awakening",
                                 ParentID = 1,
@@ -68,12 +68,80 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
         }
     }
 
+    public async IAsyncEnumerable<Person> RetrievePeopleAsync() {
+        yield return new Person() {
+            Franchises = new HashSet<Franchise>() {
+                new Franchise() {
+                    Name = "Fire Emblem",
+                },
+            },
+            Name = "Lucina",
+            ID = 1
+        };
+    }
+
+    public async IAsyncEnumerable<Franchise> RetrieveFranchises() {
+        var franchises = new List<Franchise>();
+
+        franchises.Add(new Franchise() {
+            Name = "Fire Emblem",
+            ID = 1,
+            ChildFranchises = new HashSet<Franchise>() {
+                new Franchise() {
+                    Name = "Fire Emblem Awakening",
+                    ParentID = 1,
+                    ID = 2
+                }
+            }
+        });
+
+        franchises.Add(new Franchise() {
+            Name = "Zelda",
+            ID = 3
+        });
+
+        foreach (var franchise in franchises) {
+            yield return franchise;
+        }
+    }
+
+    public async IAsyncEnumerable<Franchise> RetrieveFranchises(string searchTerm) {
+        yield return new Franchise() {
+            Name = "Fire Emblem",
+            ID = 1,
+            ChildFranchises = new HashSet<Franchise>() {
+                new Franchise() {
+                    Name = "Fire Emblem Awakening",
+                    ParentID = 1,
+                    ID = 2
+                }
+            }
+        };
+    }
+
+    public async IAsyncEnumerable<Franchise> RetrieveFranchisesForPerson(int personID) {
+        yield return new Franchise() {
+            Name = "Fire Emblem",
+            ID = 1,
+            ChildFranchises = new HashSet<Franchise>() {
+                new Franchise() {
+                    Name = "Fire Emblem Awakening",
+                    ParentID = 1,
+                    ID = 2
+                }
+            }
+        };
+    }
+
     public Task SaveWallpaperInfoAsync(Models.Wallpaper wallpaper) {
         throw new NotImplementedException();
     }
 
-    public Task SavePersonInfoAsync(Person person) {
-        throw new NotImplementedException();
+    public async Task SavePersonInfoAsync(Person person) {
+        Console.WriteLine($"Saving {person}");
+        if (person.ID <= 0) {
+            //Don't do the ID to let it auto increment
+        }
     }
 
     public Task SaveFranchiseInfoAsync(Franchise franchise) {
