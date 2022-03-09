@@ -9,6 +9,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
+using Avalonia.ReactiveUI;
 using Cake.Wallpaper.Manager.Core.Interfaces;
 using Cake.Wallpaper.Manager.Core.WallpaperRepositories;
 using DynamicData;
@@ -112,11 +113,23 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(this.DoSearch);
 
+            this.WhenAnyValue(o => o.SelectedImage)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(this.SelectedImageChanged);
             //Set up our button handlers
             NextImagePage = ReactiveCommand.Create(NextPage);
             PreviousImagePage = ReactiveCommand.Create(PreviousPage);
 
             this._wallpaperRepository = new DiskRepository();
+        }
+
+        public async void SelectedImageChanged(ImageItemViewModel? model) {
+            if (model is null) {
+                return;
+            }
+
+            var token = new CancellationToken();
+            await model.LoadBigImageAsync(token);
         }
 
         /// <summary>
@@ -249,7 +262,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                     }
 
                     //Load the images into memory and add it to the task list
-                    imgtasks.Add(data.LoadImageAsync(token));
+                    imgtasks.Add(data.LoadThumbnailImageAsync(token));
                     //Add the view model to the current page so the user can actually see it
                     CurrentPageData.Add(data);
                 }

@@ -18,8 +18,12 @@
     </Design.DataContext>
 
 
-    <Panel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-        <TabControl VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+    <DockPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Person Management" Click="MenuItem_OnClick" />
+        </Menu>
+        <TabControl DockPanel.Dock="Bottom" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch">
             <TabItem Header="Image Tagging">
                 <Grid ColumnDefinitions="* *" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                     <Grid VerticalAlignment="Stretch" RowDefinitions="auto * auto" ColumnDefinitions="*"
@@ -46,72 +50,74 @@
                             <Label Content="{Binding PageInfoString}" />
                         </StackPanel>
                     </Grid>
+                    <ScrollViewer HorizontalAlignment="Stretch" Grid.Column="1">
+                        <StackPanel Grid.Column="1" Margin="5" Orientation="Vertical"
+                                    HorizontalAlignment="Stretch">
+                            <Image MaxWidth="{Binding SelectedImage.Image.Size.Width, FallbackValue=400}"
+                                   Source="{Binding SelectedImage.Image}"
+                                   Grid.ColumnSpan="2"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Top"
+                                   Margin="0 4">
+                            </Image>
+                            <Grid HorizontalAlignment="Stretch" ColumnDefinitions="Auto *"
+                                  RowDefinitions="* auto auto auto auto">
 
-                    <StackPanel Grid.Column="1" Margin="5" Orientation="Vertical"
-                                HorizontalAlignment="Right">
-                        <Image MaxWidth="{Binding SelectedImage.Image.Size.Width, FallbackValue=400}"
-                               Source="{Binding SelectedImage.Image}"
-                               Grid.ColumnSpan="2"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Top"
-                               Margin="0 4">
-                        </Image>
-                        <Grid HorizontalAlignment="Stretch" ColumnDefinitions="Auto *"
-                              RowDefinitions="* auto auto auto auto">
+                                <Label VerticalAlignment="Center" Margin="0 3" Grid.Row="1">Name</Label>
+                                <TextBox Margin="0 3" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top"
+                                         Text="{Binding SelectedImage.FileName}">
+                                </TextBox>
 
-                            <Label VerticalAlignment="Center" Margin="0 3" Grid.Row="1">Name</Label>
-                            <TextBox Margin="0 3" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top"
-                                     Text="{Binding SelectedImage.FileName}">
-                            </TextBox>
-
-                            <ScrollViewer HorizontalAlignment="Stretch" Grid.Row="2" Grid.Column="0"
-                                          Grid.ColumnSpan="2">
-                                <Grid Grid.RowDefinitions="auto auto">
-                                    <Expander Grid.Row="0" Grid.Column="0" Header="Franchises"
-                                              IsExpanded="True" HorizontalAlignment="Stretch">
+                                <ScrollViewer HorizontalAlignment="Stretch" Grid.Row="2" Grid.Column="0"
+                                              Grid.ColumnSpan="2">
+                                    <Grid Grid.RowDefinitions="auto auto">
+                                        <Expander Grid.Row="0" Grid.Column="0" Header="Franchises"
+                                                  IsExpanded="True" HorizontalAlignment="Stretch">
 
 
-                                        <StackPanel>
-                                            <TextBox HorizontalAlignment="Stretch" Watermark="Search..." />
-                                            <ItemsControl
-                                                HorizontalAlignment="Stretch"
-                                                Items="{Binding SelectedImage.Franchises}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <TreeDataTemplate
-                                                        DataType="{x:Type models:Franchise}"
-                                                        ItemsSource="{ Binding   ChildFranchises}">
-                                                        <ContentControl Content="{Binding Name}" />
-                                                    </TreeDataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </StackPanel>
-                                    </Expander>
-                                    <Expander IsExpanded="True" HorizontalAlignment="Stretch" Header="People"
-                                              Grid.Row="1"
-                                              Grid.ColumnSpan="2"
-                                              ExpandDirection="Down">
-                                        <StackPanel HorizontalAlignment="Stretch">
-                                            <ItemsControl
-                                                HorizontalAlignment="Stretch"
-                                                Items="{Binding SelectedImage.People}">
-                                            </ItemsControl>
-                                            <Button HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
-                                                Remove
-                                            </Button>
-                                            <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">Add</Button>
-                                        </StackPanel>
-                                    </Expander>
-                                </Grid>
-                            </ScrollViewer>
-                        </Grid>
-                    </StackPanel>
+                                            <StackPanel>
+                                                <TextBox HorizontalAlignment="Stretch" Watermark="Search..." />
+                                                <ItemsControl
+                                                    HorizontalAlignment="Stretch"
+                                                    Items="{Binding SelectedImage.Franchises}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <TreeDataTemplate
+                                                            DataType="{x:Type models:Franchise}"
+                                                            ItemsSource="{ Binding   ChildFranchises}">
+                                                            <ContentControl Content="{Binding Name}" />
+                                                        </TreeDataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Expander>
+                                        <Expander IsExpanded="True" HorizontalAlignment="Stretch" Header="People"
+                                                  Grid.Row="1"
+                                                  Grid.ColumnSpan="2"
+                                                  ExpandDirection="Down">
+                                            <StackPanel HorizontalAlignment="Stretch">
+                                                <ItemsControl
+                                                    HorizontalAlignment="Stretch"
+                                                    Items="{Binding SelectedImage.People}">
+                                                </ItemsControl>
+                                                <Button HorizontalContentAlignment="Center"
+                                                        HorizontalAlignment="Stretch">
+                                                    Remove
+                                                </Button>
+                                                <Button HorizontalAlignment="Stretch"
+                                                        HorizontalContentAlignment="Center">
+                                                    Add
+                                                </Button>
+                                            </StackPanel>
+                                        </Expander>
+                                    </Grid>
+                                </ScrollViewer>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
                 </Grid>
-            </TabItem>
-            <TabItem Header="People Management">
-
             </TabItem>
         </TabControl>
 
-    </Panel>
+    </DockPanel>
 
 </Window>

@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:Cake.Wallpaper.Manager.GUI.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="550"
+        x:Class="Cake.Wallpaper.Manager.GUI.Views.PersonManagamentWindow"
+        Title="PersonManagamentWindow"
+        Background="#C0000000"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Design.DataContext>
+        <viewModels:PersonManagementViewModel />
+    </Design.DataContext>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_Save" Command="{Binding SavePerson}"></MenuItem>
+            <MenuItem Header="New" Command="{Binding NewPerson}" />
+        </Menu>
+        <UniformGrid VerticalAlignment="Stretch" Columns="2">
+
+            <StackPanel Orientation="Vertical" DockPanel.Dock="Left">
+                <TextBox Watermark="Search..."></TextBox>
+                <ListBox VerticalAlignment="Stretch" SelectedItem="{Binding SelectedPerson}" Items="{Binding People}">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"></WrapPanel>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                </ListBox>
+            </StackPanel>
+            <Grid DockPanel.Dock="Right" ColumnDefinitions="auto *" RowDefinitions="auto auto *">
+                <Label Grid.Row="0">Name</Label>
+                <TextBox Text="{Binding SelectedPerson.Name}" Grid.Column="1"></TextBox>
+                <TextBox Watermark="Search..." Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding FranchiseSearchTerm}" />
+                <ItemsControl Grid.ColumnSpan="2" Grid.Row="2" Grid.Column="0"
+                              Items="{Binding Franchises}">
+                </ItemsControl>
+
+            </Grid>
+        </UniformGrid>
+    </DockPanel>
+</Window>
