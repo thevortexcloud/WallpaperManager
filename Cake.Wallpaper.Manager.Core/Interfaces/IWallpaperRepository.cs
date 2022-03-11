@@ -17,6 +17,14 @@ public interface IWallpaperRepository {
     public IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync(string searchTerm);
 
     public IAsyncEnumerable<Models.Person> RetrievePeopleAsync();
+
+    /// <summary>
+    /// Deletes a person and all related records
+    /// </summary>
+    /// <param name="personID">The person to delete</param>
+    /// <returns></returns>
+    public Task DeletePersonAsync(int personID);
+
     public IAsyncEnumerable<Franchise> RetrieveFranchises();
     public IAsyncEnumerable<Franchise> RetrieveFranchises(string searchTerm);
     public IAsyncEnumerable<Franchise> RetrieveFranchisesForPerson(int personID);

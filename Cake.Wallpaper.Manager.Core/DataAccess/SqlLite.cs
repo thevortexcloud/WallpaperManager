@@ -154,6 +154,23 @@ WHERE PF.Person = @person",
         }
     }
 
+    public Task DeletePersonAsync(int personID) {
+        if (personID == 0) {
+            throw new ArgumentException("Person id can not be 0", nameof(personID));
+        }
+
+        SqliteCommand cmd = new SqliteCommand() {
+            CommandText = @"
+BEGIN TRANSACTION;
+            DELETE FROM People WHERE ID = @person;
+            DELETE FROM PeopleFranchises WHERE Person = @person;
+COMMIT;"
+        };
+        cmd.Parameters.Add("@person", SqliteType.Integer).Value = personID;
+
+        return this.ExecuteNonQueryAsync(cmd);
+    }
+
     /// <summary>
     /// Inserts a person into the database, or updates them if they already exist
     /// </summary>

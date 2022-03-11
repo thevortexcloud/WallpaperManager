@@ -64,6 +64,14 @@ public class PersonViewModel : ViewModelBase {
         await this._wallpaperRepository.SavePersonInfoAsync(this._person);
     }
 
+    public async Task DeletePersonAsync() {
+        if (this._person.ID == 0) {
+            return;
+        }
+
+        await this._wallpaperRepository.DeletePersonAsync(this._person.ID);
+    }
+
     public async Task SavePersonAsync(IEnumerable<Franchise> franchises) {
         _person.Franchises.Clear();
         _person.Franchises.UnionWith(franchises);

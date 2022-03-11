@@ -29,6 +29,7 @@ public class PersonManagementViewModel : ViewModelBase {
     public ReactiveCommand<Unit, Unit> SavePerson { get; }
 
     public ReactiveCommand<Unit, Unit> NewPerson { get; }
+    public ReactiveCommand<Unit, Unit> DeletePerson { get; }
 
     public string FranchiseSearchTerm {
         get => this._franchiseSearchTerm;
@@ -40,6 +41,7 @@ public class PersonManagementViewModel : ViewModelBase {
 
         SavePerson = ReactiveCommand.Create(SavePersonAsync);
         NewPerson = ReactiveCommand.Create(CreateNewPersonAsync);
+        DeletePerson = ReactiveCommand.Create(DeletePersonAsync);
 
         this.WhenAnyValue(o => o.FranchiseSearchTerm)
             .Throttle(TimeSpan.FromMilliseconds(500))
@@ -49,6 +51,20 @@ public class PersonManagementViewModel : ViewModelBase {
             .Subscribe(HandleSelectedPersonAsync);
 
         this.LoadDataAsync();
+    }
+
+    private async void DeletePersonAsync() {
+        if (this.SelectedPerson is null) {
+            return;
+        }
+
+        if (this.SelectedPerson.ID is 0) {
+            this.People.Remove(this.SelectedPerson);
+            return;
+        }
+
+        await this.SelectedPerson?.DeletePersonAsync();
+        await this.LoadDataAsync();
     }
 
     private async void HandleSelectedPersonAsync(PersonViewModel? personViewModel) {
