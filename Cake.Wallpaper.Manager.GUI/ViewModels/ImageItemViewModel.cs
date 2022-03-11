@@ -12,6 +12,7 @@ using Avalonia.Controls;
 using ReactiveUI;
 using Avalonia.Media.Imaging;
 using Avalonia.Visuals.Media.Imaging;
+using Cake.Wallpaper.Manager.Core.Interfaces;
 using Cake.Wallpaper.Manager.Core.Models;
 
 namespace Cake.Wallpaper.Manager.GUI.ViewModels;
@@ -38,13 +39,13 @@ public class ImageItemViewModel : ViewModelBase {
         set => this.RaiseAndSetIfChanged(ref this._image, value);
     }
 
-    public ObservableCollection<FranchiseSelectListItemViewModel>? Franchises => new ObservableCollection<FranchiseSelectListItemViewModel>( this._wallpaper?.Franchises?.Select(o => new FranchiseSelectListItemViewModel(o)));
+    public ObservableCollection<FranchiseSelectListItemViewModel>? Franchises => new ObservableCollection<FranchiseSelectListItemViewModel>(this._wallpaper?.Franchises?.Select(o => new FranchiseSelectListItemViewModel(o)));
 
 
     public string? FileName => this._wallpaper.FileName;
     public string? Name => this._wallpaper.Name;
 
-    public Franchise PrimaryFranchise => this?._wallpaper?.Franchises.FirstOrDefault();
+    public Franchise PrimaryFranchise => this?._wallpaper?.Franchises?.FirstOrDefault();
 
 
     public Thickness ImageBorderThickness {
@@ -52,16 +53,14 @@ public class ImageItemViewModel : ViewModelBase {
         set => this.RaiseAndSetIfChanged(ref this._imageBorderThickness, value);
     }
 
-    public ImageItemViewModel(Core.Models.Wallpaper wallpaper) {
+    public ImageItemViewModel(Core.Models.Wallpaper wallpaper, IWallpaperRepository repository) {
         this._wallpaper = wallpaper;
+        foreach (var person in this._wallpaper.People) {
+            this.People.Add(new PersonViewModel(person, repository));
+        }
     }
 
-    public ObservableCollection<PersonViewModel> People { get; set; } /*= new ObservableCollection<PersonViewModel>() {
-        new PersonViewModel() {
-            Franchise = "Fire Emblem",
-            Name = "Lucina",
-        }
-    };*/
+    public ObservableCollection<PersonViewModel> People { get; } = new ObservableCollection<PersonViewModel>();
 
     private async Task<Bitmap?> LoadImageAsync(Stream? img, bool landscape, int size, CancellationToken token) {
         if (token.IsCancellationRequested) {

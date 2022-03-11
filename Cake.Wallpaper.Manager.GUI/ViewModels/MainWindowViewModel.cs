@@ -196,7 +196,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 var wallpapers = string.IsNullOrWhiteSpace(term) ? this._wallpaperRepository.RetrieveWallpapersAsync() : this._wallpaperRepository.RetrieveWallpapersAsync(term);
 
                 await foreach (var wallpaper in wallpapers) {
-                    Images.Add(new ImageItemViewModel(wallpaper));
+                    Images.Add(new ImageItemViewModel(wallpaper, this._wallpaperRepository));
                 }
 
                 //this.CurrentPage = 1;

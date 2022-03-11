@@ -95,10 +95,11 @@
                                                   Grid.ColumnSpan="2"
                                                   ExpandDirection="Down">
                                             <StackPanel HorizontalAlignment="Stretch">
-                                                <ItemsControl
+                                                <ListBox
                                                     HorizontalAlignment="Stretch"
                                                     Items="{Binding SelectedImage.People}">
-                                                </ItemsControl>
+                                                </ListBox>
+
                                                 <Button HorizontalContentAlignment="Center"
                                                         HorizontalAlignment="Stretch">
                                                     Remove

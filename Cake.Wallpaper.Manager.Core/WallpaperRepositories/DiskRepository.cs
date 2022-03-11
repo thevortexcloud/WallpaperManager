@@ -6,49 +6,31 @@ namespace Cake.Wallpaper.Manager.Core.WallpaperRepositories;
 
 public class DiskRepository : Interfaces.IWallpaperRepository {
     private const string ConnectionString = @"Data Source=/home/zac/Projects/Cake.Wallpaper.Manager/Cake.Wallpaper.Manager.Core/Cake.Wallpaper.Manager.db;";
+    private const string BaseWallpaperPath = "/home/zac/Pictures/Wallpapers/";
 
     public async IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync() {
-        foreach (var file in new DirectoryInfo("/home/zac/Pictures/Wallpapers/").EnumerateFiles()) {
-            yield return new Models.Wallpaper() {
-                FilePath = file.FullName,
-                Name = file.Name,
-                Franchises = new List<Franchise>() {
-                    new Franchise() {
-                        Name = "Fire Emblem",
-                        ID = 1,
-                        ChildFranchises = new HashSet<Franchise>() {
-                            new Franchise() {
-                                Name = "Fire Emblem Awakening",
-                                ParentID = 1,
-                                ID = 2
-                            }
-                        }
-                    }
-                }
-            };
+        using (DataAccess.SqlLite sqlLite = new SqlLite(ConnectionString)) {
+            //Find all wallpapers we already know about and set up the file paths for people to use
+            var wallpapers = await sqlLite.RetrieveWallpapersAsync().ToListAsync();
+            foreach (var wallpaper in wallpapers) {
+                yield return wallpaper with {
+                    FilePath = Path.Combine(BaseWallpaperPath, wallpaper.FileName)
+                };
+            }
+
+            //Now find every wallpaper we don't know about, making sure to remove any files we have already handled
+            foreach (var file in new DirectoryInfo(BaseWallpaperPath).EnumerateFiles().Where(o => !wallpapers.Select(p => p.FileName).Contains(o.Name))) {
+                yield return new Models.Wallpaper() {
+                    FilePath = file.FullName,
+                    Name = file.Name,
+                    DateAdded = DateTime.Now,
+                };
+            }
         }
     }
 
-    public async IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync(string searchTerm) {
-        foreach (var file in new DirectoryInfo("/home/zac/Pictures/Wallpapers/").EnumerateFiles(searchTerm)) {
-            yield return new Models.Wallpaper() {
-                FilePath = file.FullName,
-                Name = file.Name,
-                Franchises = new List<Franchise>() {
-                    new Franchise() {
-                        Name = "Fire Emblem",
-                        ID = 1,
-                        ChildFranchises = new HashSet<Franchise>() {
-                            new Franchise() {
-                                Name = "Fire Emblem Awakening",
-                                ParentID = 1,
-                                ID = 2
-                            }
-                        }
-                    }
-                }
-            };
-        }
+    public IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync(string searchTerm) {
+        throw new NotImplementedException();
     }
 
     public async IAsyncEnumerable<Person> RetrievePeopleAsync() {

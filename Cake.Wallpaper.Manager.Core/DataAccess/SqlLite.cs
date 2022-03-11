@@ -99,6 +99,68 @@ WHERE PF.Person = @person"
     }
 
     /// <summary>
+    /// Retrieves a list of all wallpapers
+    /// </summary>
+    /// <returns>A list of all wallpapers contained in the database</returns>
+    public async IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync() {
+        SqliteCommand wallpapercmd = new SqliteCommand() {
+            CommandText = @"SELECT id,Name,DateAdded, Author, FileName, Source FROM Wallpapers",
+        };
+        await using (var wallpaperrdr = await this.ExecuteDataReaderAsync(wallpapercmd)) {
+            if (wallpaperrdr.HasRows) {
+                int wallpaperIdOrdinal = wallpaperrdr.GetOrdinal(nameof(Models.Wallpaper.ID)),
+                    wallpaperNameOrdinal = wallpaperrdr.GetOrdinal(nameof(Models.Wallpaper.Name)),
+                    dateAddedOrdinal = wallpaperrdr.GetOrdinal(nameof(Models.Wallpaper.DateAdded)),
+                    authorOrdinal = wallpaperrdr.GetOrdinal(nameof(Models.Wallpaper.Author)),
+                    fileNameOrdinal = wallpaperrdr.GetOrdinal(nameof(Models.Wallpaper.FileName)),
+                    sourceOrdinal = wallpaperrdr.GetOrdinal(nameof(Models.Wallpaper.Source));
+                while (await wallpaperrdr.ReadAsync()) {
+                    var wallpaper = new Models.Wallpaper() {
+                        ID = wallpaperrdr.GetInt32(wallpaperIdOrdinal),
+                        Name = await wallpaperrdr.IsDBNullAsync(wallpaperNameOrdinal) ? null : wallpaperrdr.GetString(wallpaperNameOrdinal),
+                        Author = await wallpaperrdr.IsDBNullAsync(authorOrdinal) ? null : wallpaperrdr.GetString(authorOrdinal),
+                        Source = await wallpaperrdr.IsDBNullAsync(sourceOrdinal) ? null : wallpaperrdr.GetString(sourceOrdinal),
+                        //DateAdded = rdr.GetDateTime(dateAddedOrdinal),
+                        FileName = wallpaperrdr.GetString(fileNameOrdinal)
+                    };
+
+                    SqliteCommand personcmd = new SqliteCommand() {
+                        CommandText = @"SELECT p.id, name, primaryfranchise
+FROM WallpaperPeople
+INNER JOIN People P on P.Id = WallpaperPeople.PersonID
+WHERE WallpaperID = @wallpaper"
+                    };
+                    personcmd.Parameters.Add("@wallpaper", SqliteType.Integer).Value = wallpaper.ID;
+
+                    using (var personrdr = await this.ExecuteDataReaderAsync(personcmd)) {
+                        if (personrdr.HasRows) {
+                            int personIDOrdinal = personrdr.GetOrdinal(nameof(Person.ID)),
+                                personNameOrdinal = personrdr.GetOrdinal(nameof(Person.Name)),
+                                primaryFranchiseOrdinal = personrdr.GetOrdinal(nameof(Person.PrimaryFranchise));
+
+                            while (await personrdr.ReadAsync()) {
+                                var person = new Person() {
+                                    ID = personrdr.GetInt32(personIDOrdinal),
+                                    Name = personrdr.GetString(personNameOrdinal),
+                                    Franchises = await this.RetrieveFranchisesForPerson(personrdr.GetInt32(personIDOrdinal)).ToHashSetAsync(),
+                                };
+                                var primaryfranchiseid = personrdr.GetInt32(primaryFranchiseOrdinal);
+                                if (primaryfranchiseid != 0) {
+                                    person.PrimaryFranchise = DataUtilities.FlattenFranchiseList(person.Franchises).FirstOrDefault(o => o.ID == primaryfranchiseid);
+                                }
+
+                                wallpaper.People.Add(person);
+                            }
+                        }
+                    }
+
+                    yield return wallpaper;
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// Retrieves a list of all people
     /// </summary>
     /// <returns>A list of all people that exist in the system</returns>
@@ -112,12 +174,11 @@ FROM People;"
             if (rdr.HasRows) {
                 int idOrdinal = rdr.GetOrdinal("Id"),
                     nameOrdinal = rdr.GetOrdinal("Name"),
-                    primaryFranchsieOrdinal = rdr.GetOrdinal("PrimaryFranchise");
+                    primaryFranchiseOrdinal = rdr.GetOrdinal("PrimaryFranchise");
                 while (await rdr.ReadAsync()) {
                     var person = new Person() {
                         Name = rdr.GetString(nameOrdinal),
                         ID = rdr.GetInt32(idOrdinal),
-                        //TODO: Primary franchise
                     };
 
                     //Find every franchise this person is linked to
@@ -147,6 +208,12 @@ WHERE PF.Person = @person",
                             person.Franchises.UnionWith(rawfranchises);
                         }
 
+                        //Find the primary franchise in the list and set it
+                        var primaryfranchiseid = rdr.GetInt32(primaryFranchiseOrdinal);
+                        if (primaryfranchiseid != 0) {
+                            person.PrimaryFranchise = DataUtilities.FlattenFranchiseList(person.Franchises).FirstOrDefault(o => o.ID == primaryfranchiseid);
+                        }
+
                         yield return person;
                     }
                 }
@@ -154,11 +221,19 @@ WHERE PF.Person = @person",
         }
     }
 
+    /// <summary>
+    /// Deletes the given person from the database and some related data
+    /// </summary>
+    /// <param name="personID">The person to delete</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="personID"/> is 0</exception>
     public Task DeletePersonAsync(int personID) {
+        //Validate values
         if (personID == 0) {
             throw new ArgumentException("Person id can not be 0", nameof(personID));
         }
 
+        //Delete links for the person and the person themselves
         SqliteCommand cmd = new SqliteCommand() {
             CommandText = @"
 BEGIN TRANSACTION;

@@ -20,6 +20,7 @@ public class PersonViewModel : ViewModelBase {
         }
     }
 
+    public Franchise? PrimaryFranchise => this._person.PrimaryFranchise;
     public ObservableCollection<FranchiseSelectListItemViewModel> FranchiseSelectListItemViewModels { get; } = new ObservableCollection<FranchiseSelectListItemViewModel>();
     public int? ID => this._person.ID;
 
