@@ -6,6 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="550"
         x:Class="Cake.Wallpaper.Manager.GUI.Views.PersonManagamentWindow"
         Title="PersonManagamentWindow"
+        TransparencyLevelHint="Blur"
         Background="#C0000000"
         ExtendClientAreaToDecorationsHint="True">
 
