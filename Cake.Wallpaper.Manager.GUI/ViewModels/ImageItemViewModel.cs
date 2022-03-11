@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
@@ -6,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using ReactiveUI;
 using Avalonia.Media.Imaging;
 using Avalonia.Visuals.Media.Imaging;
@@ -35,10 +38,8 @@ public class ImageItemViewModel : ViewModelBase {
         set => this.RaiseAndSetIfChanged(ref this._image, value);
     }
 
-    public ObservableCollection<CheckboxListItemViewModel>? Franchises => new ObservableCollection<CheckboxListItemViewModel>(this._wallpaper?.Franchises?.Select(o => new CheckboxListItemViewModel() {
-        Label = o.Name,
-        Value = o,
-    }));
+    public ObservableCollection<FranchiseSelectListItemViewModel>? Franchises => new ObservableCollection<FranchiseSelectListItemViewModel>( this._wallpaper?.Franchises?.Select(o => new FranchiseSelectListItemViewModel(o)));
+
 
     public string? FileName => this._wallpaper.FileName;
     public string? Name => this._wallpaper.Name;
@@ -55,16 +56,44 @@ public class ImageItemViewModel : ViewModelBase {
         this._wallpaper = wallpaper;
     }
 
-    public ObservableCollection<PersonViewModel> People { get; set; } = new ObservableCollection<PersonViewModel>() {
+    public ObservableCollection<PersonViewModel> People { get; set; } /*= new ObservableCollection<PersonViewModel>() {
         new PersonViewModel() {
             Franchise = "Fire Emblem",
             Name = "Lucina",
         }
-    };
+    };*/
 
-    public PersonViewModel SelectedPerson { get; set; }
+    private async Task<Bitmap?> LoadImageAsync(Stream? img, bool landscape, int size, CancellationToken token) {
+        if (token.IsCancellationRequested) {
+            return null;
+        }
 
-    public async Task LoadImageAsync(CancellationToken token) {
+        if (img is null) {
+            return null;
+        }
+
+        await using (img) {
+            //SKCodec codec = SKCodec.Create(img);
+            //width = codec.Info.Width;
+            //height = codec.Info.Height;
+            return await Task.Run<Bitmap?>(() => {
+                if (token.IsCancellationRequested) {
+                    return null;
+                }
+
+                if (landscape) {
+                    return Bitmap.DecodeToWidth(img, size, BitmapInterpolationMode.MediumQuality);
+                } else {
+                    return Bitmap.DecodeToHeight(img, size);
+                }
+
+                //          img.Seek(0, SeekOrigin.Begin);
+                //this.Image = this.ThumbnailImage.Size.AspectRatio <= 1 ? Bitmap.DecodeToHeight(img, 400) : Bitmap.DecodeToWidth(img, 840);
+            });
+        }
+    }
+
+    public async Task LoadBigImageAsync(CancellationToken token) {
         if (token.IsCancellationRequested) {
             return;
         }
@@ -75,7 +104,17 @@ public class ImageItemViewModel : ViewModelBase {
         }
 
         await using (img) {
-            //SKCodec codec = SKCodec.Create(img);
+            if (token.IsCancellationRequested) {
+                return;
+            }
+
+            if (this.ThumbnailImage?.Size.AspectRatio >= 1) {
+                this.Image = await this.LoadImageAsync(img, true, 840, token);
+            } else {
+                this.Image = await this.LoadImageAsync(img, false, 600, token);
+            }
+
+            /*//SKCodec codec = SKCodec.Create(img);
             //width = codec.Info.Width;
             //height = codec.Info.Height;
             await Task.Run(() => {
@@ -90,7 +129,42 @@ public class ImageItemViewModel : ViewModelBase {
 
                 img.Seek(0, SeekOrigin.Begin);
                 this.Image = this.ThumbnailImage.Size.AspectRatio <= 1 ? Bitmap.DecodeToHeight(img, 400) : Bitmap.DecodeToWidth(img, 840);
-            });
+            });*/
+        }
+    }
+
+    public async Task LoadThumbnailImageAsync(CancellationToken token) {
+        if (token.IsCancellationRequested) {
+            return;
+        }
+
+        var img = await this._wallpaper.LoadImageAsync();
+        if (img is null) {
+            return;
+        }
+
+        await using (img) {
+            if (token.IsCancellationRequested) {
+                return;
+            }
+
+            this.ThumbnailImage = await this.LoadImageAsync(img, true, 400, token);
+            /*//SKCodec codec = SKCodec.Create(img);
+            //width = codec.Info.Width;
+            //height = codec.Info.Height;
+            await Task.Run(() => {
+                if (token.IsCancellationRequested) {
+                    return;
+                }
+
+                this.ThumbnailImage = Bitmap.DecodeToWidth(img, 400, BitmapInterpolationMode.MediumQuality);
+                if (token.IsCancellationRequested) {
+                    return;
+                }
+
+                img.Seek(0, SeekOrigin.Begin);
+                this.Image = this.ThumbnailImage.Size.AspectRatio <= 1 ? Bitmap.DecodeToHeight(img, 400) : Bitmap.DecodeToWidth(img, 840);
+            });*/
         }
     }
 }

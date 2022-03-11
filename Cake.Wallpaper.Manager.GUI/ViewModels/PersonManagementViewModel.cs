@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Cake.Wallpaper.Manager.Core.Interfaces;
 using Cake.Wallpaper.Manager.Core.Models;
 using DynamicData;
@@ -92,10 +93,13 @@ public class PersonManagementViewModel : ViewModelBase {
 
     public async void SavePersonAsync() {
         await SelectedPerson.SavePersonAsync(SelectedPerson.FlattenFranchiseList(this.Franchises).Where(o => o.Selected).Select(o => o.Franchise));
+        await this.LoadDataAsync();
     }
 
 
-    private async void LoadDataAsync() {
+    private async Task LoadDataAsync() {
+        People.Clear();
+        Franchises.Clear();
         await foreach (var person in this._wallpaperRepository.RetrievePeopleAsync()) {
             var personviewmodel = new PersonViewModel(person, this._wallpaperRepository);
             People.Add(personviewmodel);

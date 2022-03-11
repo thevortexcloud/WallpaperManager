@@ -24,6 +24,6 @@
             </Panel>
         </Border>
         <TextBlock Text="{Binding FileName}" HorizontalAlignment="Center" />
-        <TextBlock Text="{Binding PrimaryFranchise , FallbackValue=''}" HorizontalAlignment="Center" />
+        <TextBlock Text="{Binding PrimaryFranchise.Name , FallbackValue=''}" HorizontalAlignment="Center" />
     </StackPanel>
 </UserControl>

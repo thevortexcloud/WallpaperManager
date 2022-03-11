@@ -1,30 +1,13 @@
 using System.Linq;
+using Cake.Wallpaper.Manager.Core.DataAccess;
 using Cake.Wallpaper.Manager.Core.Models;
 
 namespace Cake.Wallpaper.Manager.Core.WallpaperRepositories;
 
 public class DiskRepository : Interfaces.IWallpaperRepository {
+    private const string ConnectionString = @"Data Source=/home/zac/Projects/Cake.Wallpaper.Manager/Cake.Wallpaper.Manager.Core/Cake.Wallpaper.Manager.db;";
+
     public async IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync() {
-        /*var list = new List<Models.Wallpaper>();
-        list.Add(new Models.Wallpaper() {
-            FilePath = @"/home/zac/Pictures/Wallpapers/steinsgategroup.jpeg",
-            Franchise = @"Steins Gate"
-        }); 
-        list.Add(new Models.Wallpaper() {
-               FilePath = @"/home/zac/Pictures/Wallpapers/raven_dc_comic_fanart_2020_4k_hd_superheroes.jpg",
-               Franchise = @"Teen Titans"
-           });
-        list.Add(new Models.Wallpaper() {
-            FilePath = @"/home/zac/Pictures/Wallpapers/DzkggKsX4AAlRPi.jpeg",
-            Franchise = @"Fire Emblem"
-        });
-        list.Add(new Models.Wallpaper() {
-            FilePath = @"/home/zac/Pictures/Wallpapers/training_by_ian_navarro-d804ifo_[L3][x10.00].png",
-            Franchise = @"Avatar Korra"
-        });
-        foreach (var item in list) {
-            yield return item;
-        }*/
         foreach (var file in new DirectoryInfo("/home/zac/Pictures/Wallpapers/").EnumerateFiles()) {
             yield return new Models.Wallpaper() {
                 FilePath = file.FullName,
@@ -69,68 +52,29 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
     }
 
     public async IAsyncEnumerable<Person> RetrievePeopleAsync() {
-        yield return new Person() {
-            Franchises = new HashSet<Franchise>() {
-                new Franchise() {
-                    Name = "Fire Emblem",
-                },
-            },
-            Name = "Lucina",
-            ID = 1
-        };
-    }
-
-    public async IAsyncEnumerable<Franchise> RetrieveFranchises() {
-        var franchises = new List<Franchise>();
-
-        franchises.Add(new Franchise() {
-            Name = "Fire Emblem",
-            ID = 1,
-            ChildFranchises = new HashSet<Franchise>() {
-                new Franchise() {
-                    Name = "Fire Emblem Awakening",
-                    ParentID = 1,
-                    ID = 2
-                }
+        using (DataAccess.SqlLite sqlLite = new SqlLite(ConnectionString)) {
+            foreach (var person in await sqlLite.RetrievePeople().ToListAsync()) {
+                yield return person;
             }
-        });
-
-        franchises.Add(new Franchise() {
-            Name = "Zelda",
-            ID = 3
-        });
-
-        foreach (var franchise in franchises) {
-            yield return franchise;
         }
     }
 
-    public async IAsyncEnumerable<Franchise> RetrieveFranchises(string searchTerm) {
-        yield return new Franchise() {
-            Name = "Fire Emblem",
-            ID = 1,
-            ChildFranchises = new HashSet<Franchise>() {
-                new Franchise() {
-                    Name = "Fire Emblem Awakening",
-                    ParentID = 1,
-                    ID = 2
-                }
-            }
-        };
+    public IAsyncEnumerable<Franchise> RetrieveFranchises() {
+        using (DataAccess.SqlLite sqlLite = new SqlLite(ConnectionString)) {
+            return sqlLite.RetrieveFranchises();
+        }
     }
 
-    public async IAsyncEnumerable<Franchise> RetrieveFranchisesForPerson(int personID) {
-        yield return new Franchise() {
-            Name = "Fire Emblem",
-            ID = 1,
-            ChildFranchises = new HashSet<Franchise>() {
-                new Franchise() {
-                    Name = "Fire Emblem Awakening",
-                    ParentID = 1,
-                    ID = 2
-                }
-            }
-        };
+    public IAsyncEnumerable<Franchise> RetrieveFranchises(string searchTerm) {
+        using (DataAccess.SqlLite sqlLite = new SqlLite(ConnectionString)) {
+            return sqlLite.RetrieveFranchises();
+        }
+    }
+
+    public IAsyncEnumerable<Franchise> RetrieveFranchisesForPerson(int personID) {
+        using (DataAccess.SqlLite sqlLite = new SqlLite(ConnectionString)) {
+            return sqlLite.RetrieveFranchisesForPerson(personID);
+        }
     }
 
     public Task SaveWallpaperInfoAsync(Models.Wallpaper wallpaper) {
@@ -139,8 +83,8 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
 
     public async Task SavePersonInfoAsync(Person person) {
         Console.WriteLine($"Saving {person}");
-        if (person.ID <= 0) {
-            //Don't do the ID to let it auto increment
+        using (DataAccess.SqlLite sqlLite = new SqlLite(ConnectionString)) {
+            await sqlLite.InsertPersonAsync(person);
         }
     }
 
