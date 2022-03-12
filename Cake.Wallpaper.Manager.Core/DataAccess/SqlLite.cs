@@ -154,6 +154,15 @@ WHERE WallpaperID = @wallpaper"
                         }
                     }
 
+                    SqliteCommand wallpaperfranchisecmd = new SqliteCommand() {
+                        CommandText = @"SELECT Id, Name, ParentId, 0 as level FROM WallpaperFranchise
+INNER JOIN Franchise F on F.Id = WallpaperFranchise.FranchiseID
+WHERE WallpaperID = @wallpaper"
+                    };
+                    wallpaperfranchisecmd.Parameters.Add("@wallpaper", SqliteType.Integer).Value = wallpaper.ID;
+
+                    wallpaper.Franchises.AddRange(this.ParseFranchiseListQuery(wallpaperfranchisecmd).ToEnumerable());
+
                     yield return wallpaper;
                 }
             }

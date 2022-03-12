@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Cake.Wallpaper.Manager.Core.Models;
 
-public record Wallpaper {
+public sealed record Wallpaper {
     private string _fileName;
 
     /// <summary>
@@ -13,7 +13,7 @@ public record Wallpaper {
     /// <summary>
     /// The name of the image
     /// </summary>
-    public string? Name { get; init; }
+    public string? Name { get; set; }
 
     /// <summary>
     /// The path where the actual image data can be located

@@ -19,9 +19,9 @@
 
 
     <DockPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-
-        <Menu DockPanel.Dock="Top">
-            <MenuItem Header="Person Management" Click="MenuItem_OnClick" />
+        <Menu HorizontalAlignment="Left" DockPanel.Dock="Top">
+            <MenuItem HorizontalAlignment="Left" Header="Save" />
+            <MenuItem HorizontalAlignment="Right" Header="Person Management" Click="MenuItem_OnClick" />
         </Menu>
         <TabControl DockPanel.Dock="Bottom" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch">
             <TabItem Header="Image Tagging">
@@ -63,32 +63,35 @@
                             <Grid HorizontalAlignment="Stretch" ColumnDefinitions="Auto *"
                                   RowDefinitions="* auto auto auto auto">
 
-                                <Label VerticalAlignment="Center" Margin="0 3" Grid.Row="1">Name</Label>
-                                <TextBox Margin="0 3" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top"
-                                         Text="{Binding SelectedImage.FileName}">
-                                </TextBox>
+                                <Label VerticalAlignment="Center" Margin="0 3" Grid.Row="1">File Name</Label>
+                                <Label Margin="0 3" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top"
+                                       Content="{Binding SelectedImage.FileName}">
+                                </Label>
+                                <Label Grid.Row="2">Name</Label>
+                                <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding SelectedImage.Name}"></TextBox>
 
-                                <ScrollViewer HorizontalAlignment="Stretch" Grid.Row="2" Grid.Column="0"
+
+                                <ScrollViewer HorizontalAlignment="Stretch" Grid.Row="3" Grid.Column="0"
                                               Grid.ColumnSpan="2">
                                     <Grid Grid.RowDefinitions="auto auto">
                                         <Expander Grid.Row="0" Grid.Column="0" Header="Franchises"
                                                   IsExpanded="True" HorizontalAlignment="Stretch">
 
 
-                                            <StackPanel>
-                                                <TextBox HorizontalAlignment="Stretch" Watermark="Search..." />
-                                                <ItemsControl
-                                                    HorizontalAlignment="Stretch"
-                                                    Items="{Binding SelectedImage.Franchises}">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <TreeDataTemplate
-                                                            DataType="{x:Type models:Franchise}"
-                                                            ItemsSource="{ Binding   ChildFranchises}">
-                                                            <ContentControl Content="{Binding Name}" />
-                                                        </TreeDataTemplate>
-                                                    </ItemsControl.ItemTemplate>
+                                            <DockPanel
+                                                HorizontalAlignment="Stretch">
+                                                <!--   <TextBox DockPanel.Dock="Top" HorizontalAlignment="Stretch"
+                                                         Watermark="Search..." />-->
+                                                <ItemsControl DockPanel.Dock="Top"
+                                                              HorizontalAlignment="Stretch"
+                                                              Items="{Binding SelectedImage.Franchises}">
                                                 </ItemsControl>
-                                            </StackPanel>
+                                                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                                                    <Button Content="Add" />
+                                                    <Button Content="Remove" />
+                                                </StackPanel>
+                                            </DockPanel>
+
                                         </Expander>
                                         <Expander IsExpanded="True" HorizontalAlignment="Stretch" Header="People"
                                                   Grid.Row="1"

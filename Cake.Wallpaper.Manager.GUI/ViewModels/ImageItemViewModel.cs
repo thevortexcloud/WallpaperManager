@@ -43,7 +43,22 @@ public class ImageItemViewModel : ViewModelBase {
 
 
     public string? FileName => this._wallpaper.FileName;
-    public string? Name => this._wallpaper.Name;
+
+    public string? Name {
+        get {
+            if (!string.IsNullOrWhiteSpace(this._wallpaper.Name)) {
+                return this._wallpaper.Name;
+            } else {
+                return this._wallpaper.FileName;
+            }
+        }
+        set {
+            if (value != this._wallpaper.Name) {
+                this._wallpaper.Name = value;
+                this.RaisePropertyChanged(nameof(this._wallpaper.Name));
+            }
+        }
+    }
 
     public Franchise PrimaryFranchise => this?._wallpaper?.Franchises?.FirstOrDefault();
 
