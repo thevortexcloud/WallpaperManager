@@ -23,17 +23,17 @@ public sealed record Wallpaper {
     /// <summary>
     /// The date the image was added to the system
     /// </summary>
-    public DateTime DateAdded { get; init; }
+    public DateTime DateAdded { get; set; }
 
     /// <summary>
     /// The original author of the wallpaper
     /// </summary>
-    public string? Author { get; init; }
+    public string? Author { get; set; }
 
     /// <summary>
     /// The source of the wallpaper (DeviantArt, imgur, etc)
     /// </summary>
-    public string? Source { get; init; }
+    public string? Source { get; set; }
 
     /// <summary>
     /// Gets/sets the actual file name for the file

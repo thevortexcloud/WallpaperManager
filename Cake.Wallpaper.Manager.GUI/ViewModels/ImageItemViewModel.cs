@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -44,6 +45,31 @@ public class ImageItemViewModel : ViewModelBase {
 
     public string? FileName => this._wallpaper.FileName;
 
+    public string? Author {
+        get {
+            return this._wallpaper.Author;
+        }
+        set {
+            if (value != this._wallpaper.Author) {
+                this._wallpaper.Author = value;
+                this.RaisePropertyChanged(nameof(this._wallpaper.Author));
+            }
+        }
+    }
+
+    public string? Source {
+        get {
+            return this._wallpaper.Source;
+        }
+        set {
+            if (value != this._wallpaper.Source) {
+                this._wallpaper.Source = value;
+                this.RaisePropertyChanged(nameof(this._wallpaper.Source));
+            }
+        }
+    }
+
+    
     public string? Name {
         get {
             if (!string.IsNullOrWhiteSpace(this._wallpaper.Name)) {
