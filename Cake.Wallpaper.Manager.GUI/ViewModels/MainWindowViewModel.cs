@@ -82,6 +82,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
 
         public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> NextImagePage { get; }
         public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> PreviousImagePage { get; }
+        public ReactiveCommand<Unit, Unit> Refresh { get; }
 
         /// <summary>
         /// Returns a list of images that the user can see and interact with
@@ -119,15 +120,33 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             //Set up our button handlers
             NextImagePage = ReactiveCommand.Create(NextPage);
             PreviousImagePage = ReactiveCommand.Create(PreviousPage);
+            Refresh = ReactiveCommand.Create(RefreshAsync);
 
             this._wallpaperRepository = new DiskRepository();
         }
+
+        /// <summary>
+        /// Refreshes the current page
+        /// </summary>
+        private async void RefreshAsync() {
+            if (IsLoadingImages) {
+                this._cancellationTokenSource?.Cancel();
+            }
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            var token = this._cancellationTokenSource.Token;
+
+            await this.HandleSearchTerm(this.SearchText);
+            await this.ChangePage(null, token);
+        }
+
 
         public async void SelectedImageChanged(ImageItemViewModel? model) {
             if (model is null) {
                 return;
             }
 
+            //TODO: CANCEL THIS WHEN WE NEED TO
             var token = new CancellationToken();
             await model.LoadBigImageAsync(token);
         }
@@ -175,7 +194,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// <param name="term"></param>
         private async void DoSearch(string term) {
             if (IsLoadingImages) {
-                this._cancellationTokenSource.Cancel();
+                this._cancellationTokenSource?.Cancel();
             }
 
             await this.HandleSearchTerm(term);
@@ -207,9 +226,9 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// <summary>
         /// Asynchronously changes the current image list page backwards or forwards
         /// </summary>
-        /// <param name="forward">True to move forward, false to move backwards</param>
+        /// <param name="forward">True to move forward, false to move backwards, null to keep the current page</param>
         /// <param name="token">The cancellation token to cancel loading the next page</param>
-        private async Task ChangePage(bool forward, CancellationToken token) {
+        private async Task ChangePage(bool? forward, CancellationToken token) {
             try {
                 //Need a semaphore to make sure we only do one of these at a time and to prevent all sorts of weird counting issues
                 await this._slim.WaitAsync();
@@ -225,13 +244,15 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 var lastpage = CurrentPage;
 
                 //Clamp the values to the maximum total pages and 1 for the minimum
-                this.CurrentPage = forward ? Math.Min(this.CurrentPage + 1, this.TotalPages) : Math.Max(1, this.CurrentPage - 1);
+                if (forward.HasValue) {
+                    this.CurrentPage = forward.Value ? Math.Min(this.CurrentPage + 1, this.TotalPages) : Math.Max(1, this.CurrentPage - 1);
+                }
 
-                if (CurrentPage == lastpage) {
+                //Don't change the page data if the page number has not changed unless something explicitly requests a page refresh 
+                if (CurrentPage == lastpage && forward.HasValue) {
                     this._slim.Release();
                     return;
                 }
-
 
                 //Iterate through all the image data we have and dispose of it or we will run out of memory very quickly
                 foreach (var data in CurrentPageData) {

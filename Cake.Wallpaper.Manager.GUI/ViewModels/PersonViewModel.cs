@@ -41,27 +41,13 @@ public class PersonViewModel : ViewModelBase {
         }
     }
 
-    public IEnumerable<FranchiseSelectListItemViewModel> FlattenFranchiseList(IEnumerable<FranchiseSelectListItemViewModel> franchiseSelectListItemViewModel) {
-        var result = new List<FranchiseSelectListItemViewModel>();
-        foreach (var franchisse in franchiseSelectListItemViewModel) {
-            result.Add(franchisse);
-            if (franchisse?.ChildFranchises?.Any() ?? false) {
-                result.AddRange(this.FlattenFranchiseList(franchisse.ChildFranchises));
-            }
-
-            //franchisse?.ChildFranchises?.Clear();
-        }
-
-        return result;
-    }
-
     public IEnumerable<FranchiseSelectListItemViewModel> FlattenFranchiseList() {
-        return this.FlattenFranchiseList(this.FranchiseSelectListItemViewModels);
+        return ViewModelUtilities.FlattenFranchiseList(this.FranchiseSelectListItemViewModels);
     }
 
     public async Task SavePersonAsync() {
         _person.Franchises.Clear();
-        _person.Franchises.UnionWith(this.FlattenFranchiseList(this.FranchiseSelectListItemViewModels).Where(o => o.Selected).Select(o => o.Franchise));
+        _person.Franchises.UnionWith(ViewModelUtilities.FlattenFranchiseList(this.FranchiseSelectListItemViewModels).Where(o => o.Selected).Select(o => o.Franchise));
         await this._wallpaperRepository.SavePersonInfoAsync(this._person);
     }
 

@@ -73,7 +73,7 @@ public class PersonManagementViewModel : ViewModelBase {
         }
 
         if (personViewModel.ID == 0) {
-            foreach (var model in personViewModel.FlattenFranchiseList(Franchises)) {
+            foreach (var model in ViewModelUtilities.FlattenFranchiseList(Franchises)) {
                 model.Selected = false;
             }
 
@@ -81,7 +81,7 @@ public class PersonManagementViewModel : ViewModelBase {
         }
 
         var flatfranchiselist = personViewModel.FlattenFranchiseList();
-        foreach (var model in personViewModel.FlattenFranchiseList(Franchises)) {
+        foreach (var model in ViewModelUtilities.FlattenFranchiseList(Franchises)) {
             if (flatfranchiselist.Select(o => o.Franchise).Contains(model.Franchise)) {
                 model.Selected = true;
             } else {
@@ -108,7 +108,7 @@ public class PersonManagementViewModel : ViewModelBase {
     }
 
     public async void SavePersonAsync() {
-        await SelectedPerson.SavePersonAsync(SelectedPerson.FlattenFranchiseList(this.Franchises).Where(o => o.Selected).Select(o => o.Franchise));
+        await SelectedPerson.SavePersonAsync(ViewModelUtilities.FlattenFranchiseList(this.Franchises).Where(o => o.Selected).Select(o => o.Franchise));
         await this.LoadDataAsync();
     }
 

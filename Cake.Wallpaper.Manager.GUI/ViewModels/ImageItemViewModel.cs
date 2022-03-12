@@ -40,15 +40,13 @@ public class ImageItemViewModel : ViewModelBase {
         set => this.RaiseAndSetIfChanged(ref this._image, value);
     }
 
-    public ObservableCollection<FranchiseSelectListItemViewModel>? Franchises => new ObservableCollection<FranchiseSelectListItemViewModel>(this._wallpaper?.Franchises?.Select(o => new FranchiseSelectListItemViewModel(o)));
+    public ObservableCollection<FranchiseSelectListItemViewModel>? Franchises { get; } = new ObservableCollection<FranchiseSelectListItemViewModel>();
 
 
     public string? FileName => this._wallpaper.FileName;
 
     public string? Author {
-        get {
-            return this._wallpaper.Author;
-        }
+        get { return this._wallpaper.Author; }
         set {
             if (value != this._wallpaper.Author) {
                 this._wallpaper.Author = value;
@@ -58,9 +56,7 @@ public class ImageItemViewModel : ViewModelBase {
     }
 
     public string? Source {
-        get {
-            return this._wallpaper.Source;
-        }
+        get { return this._wallpaper.Source; }
         set {
             if (value != this._wallpaper.Source) {
                 this._wallpaper.Source = value;
@@ -69,7 +65,6 @@ public class ImageItemViewModel : ViewModelBase {
         }
     }
 
-    
     public string? Name {
         get {
             if (!string.IsNullOrWhiteSpace(this._wallpaper.Name)) {
@@ -98,6 +93,10 @@ public class ImageItemViewModel : ViewModelBase {
         this._wallpaper = wallpaper;
         foreach (var person in this._wallpaper.People) {
             this.People.Add(new PersonViewModel(person, repository));
+        }
+
+        foreach (var franchise in this._wallpaper?.Franchises?.Select(o => new FranchiseSelectListItemViewModel(o))) {
+            Franchises.Add(franchise);
         }
     }
 

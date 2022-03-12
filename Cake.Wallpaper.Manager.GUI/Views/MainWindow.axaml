@@ -21,7 +21,9 @@
     <DockPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Menu HorizontalAlignment="Left" DockPanel.Dock="Top">
             <MenuItem HorizontalAlignment="Left" Header="Save" />
+            <MenuItem Header="Refresh" Command="{Binding Refresh}"/>
             <MenuItem HorizontalAlignment="Right" Header="Person Management" Click="MenuItem_OnClick" />
+            <MenuItem Header="Franchise Management" />
         </Menu>
         <TabControl DockPanel.Dock="Bottom" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch">
             <TabItem Header="Image Tagging">
@@ -69,10 +71,14 @@
                                 </Label>
                                 <Label Margin="0 5" Grid.Row="2">Name</Label>
                                 <TextBox Grid.Column="1" Margin="0 5" Grid.Row="2" Text="{Binding SelectedImage.Name}"></TextBox>
-                                <Label Margin="0 5"  Grid.Row="3">Author</Label>
-                                <TextBox Grid.Column="1" Grid.Row="3" Margin="0 5" Text="{Binding SelectedImage.Author}"></TextBox>
+                                <Label Margin="0 5" Grid.Row="3">Author</Label>
+                                <TextBox Grid.Column="1" Grid.Row="3" Margin="0 5"
+                                         Text="{Binding SelectedImage.Author}">
+                                </TextBox>
                                 <Label Grid.Row="4" Margin="0 5">Source</Label>
-                                <TextBox Grid.Column="1" Grid.Row="4" Margin="0 5" Text="{Binding SelectedImage.Source}"></TextBox>
+                                <TextBox Grid.Column="1" Grid.Row="4" Margin="0 5"
+                                         Text="{Binding SelectedImage.Source}">
+                                </TextBox>
 
                                 <ScrollViewer HorizontalAlignment="Stretch" Grid.Row="5" Grid.Column="0"
                                               Grid.ColumnSpan="2">
@@ -91,7 +97,6 @@
                                                 </ItemsControl>
                                                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
                                                     <Button Content="Add" />
-                                                    <Button Content="Remove" />
                                                 </StackPanel>
                                             </DockPanel>
 
