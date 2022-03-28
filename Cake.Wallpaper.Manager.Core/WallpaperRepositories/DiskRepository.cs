@@ -34,7 +34,7 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
     }
 
     public async IAsyncEnumerable<Person> RetrievePeopleAsync() {
-        using (DataAccess.SqlLite sqlLite = new SqlLite(ConnectionString)) {
+        await using (DataAccess.SqlLite sqlLite = new SqlLite(ConnectionString)) {
             foreach (var person in await sqlLite.RetrievePeople().ToListAsync()) {
                 yield return person;
             }
@@ -76,7 +76,15 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
         }
     }
 
-    public Task SaveFranchiseInfoAsync(Franchise franchise) {
-        throw new NotImplementedException();
+    public async Task SaveFranchiseInfoAsync(Franchise franchise) {
+        await using (SqlLite sqlLite = new SqlLite(ConnectionString)) {
+            await sqlLite.InsertFranchise(franchise);
+        }
+    }
+
+    public async Task SaveFranchiseInfosAsync(IEnumerable<Franchise> franchises) {
+        await using (SqlLite sqlLite = new SqlLite(ConnectionString)) {
+            await sqlLite.InsertFranchiseList(franchises);
+        }
     }
 }

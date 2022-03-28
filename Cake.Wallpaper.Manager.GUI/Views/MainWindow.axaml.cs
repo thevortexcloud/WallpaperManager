@@ -16,9 +16,15 @@ namespace Cake.Wallpaper.Manager.GUI.Views {
             (DataContext as MainWindowViewModel).LoadInitialData(sender, e);
         }
 
-        private void MenuItem_OnClick(object? sender, RoutedEventArgs e) {
+        private void MenuItem_OpenPersonManagement_OnClick(object? sender, RoutedEventArgs e) {
             new PersonManagamentWindow() {
                 DataContext = new PersonManagementViewModel()
+            }.Show(this);
+        }
+
+        private void MenuItem_OnClick(object? sender, RoutedEventArgs e) {
+            new FranchiseManagementWindow() {
+                DataContext = new FranchiseManagementViewModel()
             }.Show(this);
         }
     }

@@ -13,6 +13,47 @@ internal sealed class SqlLite : SqlLiteBase {
     #endregion
 
     #region Public methods
+    public Task InsertFranchise(Franchise franchise) {
+        SqliteCommand cmd = new SqliteCommand() {
+            CommandText = @"INSERT OR REPLACE INTO main.Franchise (Id, Name, ParentId)
+            values (@id, @name, @parent);"
+        };
+        cmd.Parameters.Add("@id", SqliteType.Integer).Value = franchise.ID == 0 ? DBNull.Value : franchise.ID;
+        cmd.Parameters.Add("@Name", SqliteType.Text).Value = franchise.Name;
+        cmd.Parameters.Add("@parent", SqliteType.Integer).Value = franchise?.ParentID == null ? DBNull.Value : franchise.ParentID;
+
+        return this.ExecuteNonQueryAsync(cmd);
+    }
+
+    public async Task InsertFranchiseList(IEnumerable<Franchise> franchises) {
+        await using (var tran = await this.CreateTransactionAsync()) {
+            try {
+                SqliteCommand deleteCommand = new SqliteCommand() {
+                    CommandText = @"DELETE FROM Franchise",
+                };
+
+                await this.ExecuteNonQueryAsync(deleteCommand, tran);
+
+                foreach (var franchise in franchises) {
+                    SqliteCommand cmd = new SqliteCommand() {
+                        CommandText = @"INSERT OR REPLACE INTO main.Franchise (Id, Name, ParentId)
+            values (@id, @name, @parent);"
+                    };
+                    cmd.Parameters.Add("@id", SqliteType.Integer).Value = franchise.ID == 0 ? DBNull.Value : franchise.ID;
+                    cmd.Parameters.Add("@name", SqliteType.Text).Value = franchise.Name;
+                    cmd.Parameters.Add("@parent", SqliteType.Integer).Value = franchise?.ParentID == null ? DBNull.Value : franchise.ParentID;
+
+                    await this.ExecuteNonQueryAsync(cmd, tran);
+                }
+
+                await tran.CommitAsync();
+            } catch {
+                await tran.RollbackAsync();
+                throw;
+            }
+        }
+    }
+
     /// <summary>
     /// Retrieves a list of franchises for a person
     /// </summary>
@@ -144,8 +185,8 @@ WHERE WallpaperID = @wallpaper"
                                     Name = personrdr.GetString(personNameOrdinal),
                                     Franchises = await this.RetrieveFranchisesForPerson(personrdr.GetInt32(personIDOrdinal)).ToHashSetAsync(),
                                 };
-                                var primaryfranchiseid = personrdr.GetInt32(primaryFranchiseOrdinal);
-                                if (primaryfranchiseid != 0) {
+                                int? primaryfranchiseid = await personrdr.IsDBNullAsync(primaryFranchiseOrdinal) ? null : personrdr.GetInt32(primaryFranchiseOrdinal);
+                                if (primaryfranchiseid.HasValue && primaryfranchiseid != 0) {
                                     person.PrimaryFranchise = DataUtilities.FlattenFranchiseList(person.Franchises).FirstOrDefault(o => o.ID == primaryfranchiseid);
                                 }
 
@@ -218,7 +259,7 @@ WHERE PF.Person = @person",
                         }
 
                         //Find the primary franchise in the list and set it
-                        var primaryfranchiseid = rdr.GetInt32(primaryFranchiseOrdinal);
+                        int? primaryfranchiseid = await rdr.IsDBNullAsync(primaryFranchiseOrdinal) ? null : rdr.GetInt32(primaryFranchiseOrdinal);
                         if (primaryfranchiseid != 0) {
                             person.PrimaryFranchise = DataUtilities.FlattenFranchiseList(person.Franchises).FirstOrDefault(o => o.ID == primaryfranchiseid);
                         }
@@ -265,7 +306,7 @@ COMMIT;"
             throw new ArgumentNullException(nameof(person));
         }
 
-        using (var tran = await this.CreateTransaction()) {
+        using (var tran = await this.CreateTransactionAsync()) {
             try {
                 SqliteCommand cmd = new SqliteCommand() {
                     CommandText = @"

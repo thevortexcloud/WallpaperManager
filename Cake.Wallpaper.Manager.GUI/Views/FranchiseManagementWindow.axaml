@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:Cake.Wallpaper.Manager.GUI.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="550" d:DesignHeight="350"
+        x:Class="Cake.Wallpaper.Manager.GUI.Views.FranchiseManagementWindow"
+        Title="FranchiseManagementWindow">
+    <Design.DataContext>
+        <viewModels:FranchiseManagementViewModel />
+    </Design.DataContext>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Command="{Binding SaveFranchises}" Header="Save" />
+            <MenuItem Command="{Binding NewFranchise}" Header="New" />
+            <MenuItem Header="Delete" />
+        </Menu>
+        <UniformGrid>
+            <StackPanel Orientation="Vertical" DockPanel.Dock="Left">
+                <TextBox Watermark="Search..."></TextBox>
+                <ListBox Items="{Binding Franchises}" SelectedItem="{Binding SelectedFranchise}"></ListBox>
+            </StackPanel>
+            <Grid Margin="10  0 0 0" ColumnDefinitions="auto *" RowDefinitions="auto auto auto auto"
+                  DockPanel.Dock="Right">
+                <Label Grid.Row="1" VerticalAlignment="Center">Name</Label>
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedFranchise.Name}"></TextBox>
+                <Label Grid.Row="2">Parent ID</Label>
+                <Label Grid.Column="1" Grid.Row="2" Content="{Binding SelectedFranchise.ParentID}" />
+                <Button Margin="0 10" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center" Command="{Binding SetParent}">
+                    Set Parent
+                </Button>
+            </Grid>
+        </UniformGrid>
+    </DockPanel>
+</Window>

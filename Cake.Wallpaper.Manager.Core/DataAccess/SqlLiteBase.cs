@@ -15,7 +15,7 @@ internal abstract class SqlLiteBase : IDisposable, IAsyncDisposable {
         this._connection = new SqliteConnection(_connectionString);
     }
 
-    protected async ValueTask<SqliteTransaction> CreateTransaction() {
+    protected async ValueTask<SqliteTransaction> CreateTransactionAsync() {
         await this.OpenConnection();
         return (SqliteTransaction) await this._connection.BeginTransactionAsync();
     }

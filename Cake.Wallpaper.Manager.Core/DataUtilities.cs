@@ -13,11 +13,12 @@ public static class DataUtilities {
         foreach (var franchise in franchises) {
             if (franchise.ChildFranchises.Any()) {
                 result.AddRange(FlattenFranchiseList(franchise.ChildFranchises));
+                franchise.ChildFranchises.Clear();
             }
 
             result.Add(franchise);
         }
 
-        return result;
+        return result.OrderBy(o => o.ParentID);
     }
 }

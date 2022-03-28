@@ -2,7 +2,7 @@ namespace Cake.Wallpaper.Manager.Core.Models;
 
 public class Franchise {
     public int ID { get; init; }
-    public string Name { get; init; }
+    public string Name { get; set; }
     public HashSet<Franchise> ChildFranchises { get; init; } = new HashSet<Franchise>();
 
     public int? ParentID { get; set; }

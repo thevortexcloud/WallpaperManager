@@ -31,4 +31,5 @@ public interface IWallpaperRepository {
     public Task SaveWallpaperInfoAsync(Models.Wallpaper wallpaper);
     public Task SavePersonInfoAsync(Models.Person person);
     public Task SaveFranchiseInfoAsync(Models.Franchise franchise);
+    public Task SaveFranchiseInfosAsync(IEnumerable<Models.Franchise> franchise);
 }

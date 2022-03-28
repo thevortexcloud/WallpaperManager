@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using Avalonia.Controls.Templates;
 using Cake.Wallpaper.Manager.Core.Models;
 using DynamicData;
 using ReactiveUI;
@@ -11,7 +12,25 @@ public class FranchiseSelectListItemViewModel : ViewModelBase {
     private bool _selected;
     public Franchise? Franchise => this._franchise;
 
-    public string Name => this._franchise.Name;
+    public int? ParentID {
+        get => this.Franchise?.ParentID;
+        set {
+            if (value != this.Franchise?.ParentID && this.Franchise is not null) {
+                this.Franchise.ParentID = value;
+                this.RaisePropertyChanged(nameof(ParentID));
+            }
+        }
+    }
+
+    public string? Name {
+        get => Franchise?.Name;
+        set {
+            if (value != this.Franchise?.Name && this.Franchise is not null) {
+                this.Franchise.Name = value;
+                this.RaisePropertyChanged(nameof(Name));
+            }
+        }
+    }
 
     public bool Selected {
         get => this._selected;
