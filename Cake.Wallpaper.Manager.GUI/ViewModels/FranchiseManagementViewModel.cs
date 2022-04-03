@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Cake.Wallpaper.Manager.Core.Interfaces;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using Cake.Wallpaper.Manager.Core;
 using Cake.Wallpaper.Manager.Core.Models;
 using DynamicData.Binding;
@@ -16,7 +17,13 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels;
 public sealed class FranchiseManagementViewModel : ViewModelBase {
     private readonly IWallpaperRepository _wallpaperRepository;
     private FranchiseSelectListItemViewModel? _selectedFranchise;
+    private string _searchText;
     public ObservableCollection<FranchiseSelectListItemViewModel> Franchises { get; } = new ObservableCollection<FranchiseSelectListItemViewModel>();
+
+    public string SearchText {
+        get => this._searchText;
+        set => this.RaiseAndSetIfChanged(ref this._searchText, value);
+    }
 
     public ReactiveCommand<Unit, Unit> SetParent { get; }
     public ReactiveCommand<Unit, Unit> NewFranchise { get; }
@@ -32,7 +39,21 @@ public sealed class FranchiseManagementViewModel : ViewModelBase {
         SetParent = ReactiveCommand.Create(SetParentHandler);
         NewFranchise = ReactiveCommand.Create(NewFranchiseHandler);
         SaveFranchises = ReactiveCommand.Create(SaveFranchisesHandler);
+
+        this.WhenAnyValue(x => x.SearchText)
+            .Throttle(TimeSpan.FromMilliseconds(600))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(this.DoSearchAsync);
+
         LoadDataAsync();
+    }
+
+    private async void DoSearchAsync(string? value) {
+        if (value is null) {
+            return;
+        }
+
+        await this.LoadDataAsync(value);
     }
 
     private async void SaveFranchisesHandler() {
@@ -63,9 +84,12 @@ public sealed class FranchiseManagementViewModel : ViewModelBase {
         this.SelectedFranchise.ParentID = selectedfranchises.FirstOrDefault()?.Franchise?.ID ?? 0;
     }
 
-    private async Task LoadDataAsync() {
+    private async Task LoadDataAsync(string? searchTerm = null) {
         this.Franchises.Clear();
-        foreach (var franchise in DataUtilities.FlattenFranchiseList(this._wallpaperRepository.RetrieveFranchises().ToEnumerable()).Select(o => new FranchiseSelectListItemViewModel(o))) {
+        IAsyncEnumerable<Franchise>? franchises = null;
+        franchises = string.IsNullOrWhiteSpace(searchTerm) ? this._wallpaperRepository.RetrieveFranchises() : this._wallpaperRepository.RetrieveFranchises(searchTerm);
+
+        foreach (var franchise in DataUtilities.FlattenFranchiseList(franchises.ToEnumerable()).Select(o => new FranchiseSelectListItemViewModel(o))) {
             Franchises.Add(franchise);
         }
     }

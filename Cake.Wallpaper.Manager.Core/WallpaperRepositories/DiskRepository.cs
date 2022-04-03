@@ -55,7 +55,7 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
 
     public IAsyncEnumerable<Franchise> RetrieveFranchises(string searchTerm) {
         using (DataAccess.SqlLite sqlLite = new SqlLite(ConnectionString)) {
-            return sqlLite.RetrieveFranchises();
+            return sqlLite.RetrieveFranchises(searchTerm);
         }
     }
 

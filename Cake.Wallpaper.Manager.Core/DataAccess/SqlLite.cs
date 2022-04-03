@@ -97,6 +97,33 @@ WHERE PF.Person = @person"
         return this.ParseFranchiseListQuery(cmd);
     }
 
+    /// <summary>
+    /// Retrieves a filtered list of franchises, complete with nesting of child franchises if the parent is included in the result
+    /// </summary>
+    /// <returns>A list of all top level and child franchises</returns>
+    public IAsyncEnumerable<Franchise> RetrieveFranchises(string filter) {
+        SqliteCommand cmd = new SqliteCommand() {
+            //Recursive Common Table Expression can find a parent and all children
+            CommandText = @"WITH RECURSIVE under_part(id, name, parentid, level) AS (
+            SELECT Id, Name, ParentId, 0
+            FROM Franchise
+            WHERE Franchise.ParentId IS NULL
+            UNION ALL
+            SELECT Franchise.id, Franchise.name, Franchise.parentid, under_part.level + 1
+            FROM Franchise,
+            under_part
+            WHERE Franchise.ParentId = under_part.id
+            )
+            SELECT id, name, parentid, level
+            FROM under_part
+            WHERE name LIKE '%' || @filter || '%'
+            ;"
+        };
+        cmd.Parameters.Add("@filter", SqliteType.Text).Value = filter;
+
+        return this.ParseFranchiseListQuery(cmd);
+    }
+
     private async IAsyncEnumerable<Franchise> ParseFranchiseListQuery(SqliteCommand cmd) {
         using (var rdr = await this.ExecuteDataReaderAsync(cmd)) {
             if (rdr.HasRows) {

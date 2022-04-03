@@ -17,7 +17,7 @@
         </Menu>
         <UniformGrid>
             <StackPanel Orientation="Vertical" DockPanel.Dock="Left">
-                <TextBox Watermark="Search..."></TextBox>
+                <TextBox Text="{Binding SearchText}" Watermark="Search..."></TextBox>
                 <ListBox Items="{Binding Franchises}" SelectedItem="{Binding SelectedFranchise}"></ListBox>
             </StackPanel>
             <Grid Margin="10  0 0 0" ColumnDefinitions="auto *" RowDefinitions="auto auto auto auto"
