@@ -29,8 +29,29 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
         }
     }
 
-    public IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync(string searchTerm) {
-        throw new NotImplementedException();
+    public async IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync(string searchTerm) {
+        using (DataAccess.SqlLite sqlLite = new SqlLite(ConnectionString)) {
+            //Find all wallpapers we already know about and set up the file paths for people to use
+            var wallpapers = sqlLite.RetrieveWallpapersAsync(searchTerm);
+            var list = await wallpapers.ToListAsync();
+            foreach (var wallpaper in list) {
+                yield return wallpaper with {
+                    FilePath = Path.Combine(BaseWallpaperPath, wallpaper.FileName)
+                };
+            }
+
+            //Now find every wallpaper we don't know about, making sure to remove any files we have already handled
+            foreach (var file in new DirectoryInfo(BaseWallpaperPath).EnumerateFiles($"*{searchTerm}*",
+                         new EnumerationOptions() {
+                             MatchCasing = MatchCasing.CaseInsensitive,
+                         }).Where(o => !list.Select(p => p.FileName).Contains(o.Name))) {
+                yield return new Models.Wallpaper() {
+                    FilePath = file.FullName,
+                    Name = file.Name,
+                    DateAdded = DateTime.Now,
+                };
+            }
+        }
     }
 
     public async IAsyncEnumerable<Person> RetrievePeopleAsync() {

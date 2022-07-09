@@ -118,8 +118,8 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(this.SelectedImageChanged);
             //Set up our button handlers
-            NextImagePage = ReactiveCommand.Create(NextPage);
-            PreviousImagePage = ReactiveCommand.Create(PreviousPage);
+            NextImagePage = ReactiveCommand.Create(NextPageAsync);
+            PreviousImagePage = ReactiveCommand.Create(PreviousPageAsync);
             Refresh = ReactiveCommand.Create(RefreshAsync);
 
             this._wallpaperRepository = new DiskRepository();
@@ -163,7 +163,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// <summary>
         /// Advances the current image list to the next page
         /// </summary>
-        private async void NextPage() {
+        private async void NextPageAsync() {
             if (IsLoadingImages) {
                 this._cancellationTokenSource.Cancel();
             }
@@ -171,13 +171,13 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             _cancellationTokenSource = new CancellationTokenSource();
             var token = this._cancellationTokenSource.Token;
 
-            await this.ChangePage(true, token);
+            await this.ChangePageAsync(true, token);
         }
 
         /// <summary>
         /// Advances the current image list to the previous page
         /// </summary>
-        private async void PreviousPage() {
+        private async void PreviousPageAsync() {
             if (IsLoadingImages) {
                 this._cancellationTokenSource.Cancel();
             }
@@ -185,7 +185,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             _cancellationTokenSource = new CancellationTokenSource();
             var token = this._cancellationTokenSource.Token;
 
-            await this.ChangePage(false, token);
+            await this.ChangePageAsync(false, token);
         }
 
         /// <summary>
@@ -201,7 +201,8 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
 
             _cancellationTokenSource = new CancellationTokenSource();
             var token = this._cancellationTokenSource.Token;
-            await this.ChangePage(true, token);
+            //Always go back to the first page if this method gets called as the user will have initiated a new search
+            await this.SetPageAsync(1, true, token);
         }
 
         /// <summary>
@@ -228,72 +229,11 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// </summary>
         /// <param name="forward">True to move forward, false to move backwards, null to keep the current page</param>
         /// <param name="token">The cancellation token to cancel loading the next page</param>
-        private async Task ChangePage(bool? forward, CancellationToken token) {
-            try {
-                //Need a semaphore to make sure we only do one of these at a time and to prevent all sorts of weird counting issues
-                await this._slim.WaitAsync();
-                //Set a flag so other things know we are busy, since this is in a semaphore it SHOULD be thread safe
-                IsLoadingImages = true;
-
-                if (CurrentPage == TotalPages || CurrentPage < 0) {
-                    this._slim.Release();
-                    return;
-                }
-
-                //Need to save the last page number the user was on, and if it's still the same page we don't need to do anything
-                var lastpage = CurrentPage;
-
-                //Clamp the values to the maximum total pages and 1 for the minimum
-                if (forward.HasValue) {
-                    this.CurrentPage = forward.Value ? Math.Min(this.CurrentPage + 1, this.TotalPages) : Math.Max(1, this.CurrentPage - 1);
-                }
-
-                //Don't change the page data if the page number has not changed unless something explicitly requests a page refresh 
-                if (CurrentPage == lastpage && forward.HasValue) {
-                    this._slim.Release();
-                    return;
-                }
-
-                //Iterate through all the image data we have and dispose of it or we will run out of memory very quickly
-                foreach (var data in CurrentPageData) {
-                    data.Image?.Dispose();
-                    data.ThumbnailImage?.Dispose();
-
-                    data.Image = null;
-                    data.ThumbnailImage = null;
-                }
-
-                CurrentPageData.Clear();
-
-                if (token.IsCancellationRequested) {
-                    this._slim.Release();
-                    return;
-                }
-
-                //Grab the data for the current page from the backing list
-                IEnumerable<ImageItemViewModel>? newPageData = this.Images.Skip((CurrentPage - 1) * PAGE_SIZE).Take(PAGE_SIZE);
-
-                //Create a list of tasks we can await at the end, as this is the very, very slow part
-                var imgtasks = new List<Task>();
-                foreach (var data in newPageData) {
-                    //Check if we have a cancellation and break out of the loop if we do
-                    //This allows for cleaner code than a return
-                    if (token.IsCancellationRequested) {
-                        break;
-                    }
-
-                    //Load the images into memory and add it to the task list
-                    imgtasks.Add(data.LoadThumbnailImageAsync(token));
-                    //Add the view model to the current page so the user can actually see it
-                    CurrentPageData.Add(data);
-                }
-
-                //Await everything (which may not be a whole lot if the task was cancelled) to prevent people from spamming the next page and causing all sorts of weird issues
-                await Task.WhenAll(imgtasks);
-                //Finally release the semaphore as we are no longer doing anything
-                this._slim.Release();
-            } finally {
-                IsLoadingImages = false;
+        private async Task ChangePageAsync(bool? forward, CancellationToken token) {
+            if (forward.HasValue) {
+                await this.SetPageAsync(forward.Value ? this.CurrentPage + 1 : this.CurrentPage - 1, false, token);
+            } else {
+                await this.SetPageAsync(this.CurrentPage, true, token);
             }
         }
     }

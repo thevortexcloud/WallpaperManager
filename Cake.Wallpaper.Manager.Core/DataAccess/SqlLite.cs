@@ -170,10 +170,20 @@ WHERE PF.Person = @person"
     /// Retrieves a list of all wallpapers
     /// </summary>
     /// <returns>A list of all wallpapers contained in the database</returns>
-    public async IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync() {
-        SqliteCommand wallpapercmd = new SqliteCommand() {
-            CommandText = @"SELECT id,Name,DateAdded, Author, FileName, Source FROM Wallpapers",
-        };
+    public async IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync(string? searchTerm) {
+        SqliteCommand? wallpapercmd = null;
+        if (string.IsNullOrWhiteSpace(searchTerm)) {
+            wallpapercmd = new SqliteCommand() {
+                CommandText = @"SELECT id,Name,DateAdded, Author, FileName, Source FROM Wallpapers",
+            };
+        } else {
+            wallpapercmd = new SqliteCommand() {
+                CommandText = @"SELECT id,Name,DateAdded, Author, FileName, Source FROM Wallpapers
+                                                   WHERE name LIKE '%' +@name+'%' OR Filename LIKE '%'+@name+'%'",
+            };
+            wallpapercmd.Parameters.Add("@name", SqliteType.Text).Value = searchTerm;
+        }
+
         await using (var wallpaperrdr = await this.ExecuteDataReaderAsync(wallpapercmd)) {
             if (wallpaperrdr.HasRows) {
                 int wallpaperIdOrdinal = wallpaperrdr.GetOrdinal(nameof(Models.Wallpaper.ID)),
@@ -235,6 +245,14 @@ WHERE WallpaperID = @wallpaper"
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Retrieves a list of all wallpapers
+    /// </summary>
+    /// <returns>A list of all wallpapers contained in the database</returns>
+    public IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync() {
+        return this.RetrieveWallpapersAsync(null!);
     }
 
     /// <summary>
