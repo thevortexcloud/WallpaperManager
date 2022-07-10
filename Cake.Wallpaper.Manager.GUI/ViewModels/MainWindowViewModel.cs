@@ -122,6 +122,19 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             PreviousImagePage = ReactiveCommand.Create(PreviousPageAsync);
             Refresh = ReactiveCommand.Create(RefreshAsync);
 
+
+            SelectFranchiseCommand = ReactiveCommand.CreateFromTask(async () => {
+                //var store = new MainWindowViewModel();
+
+                var result = await ShowFranchiseSelectDialog?.Handle(Unit.Default);
+
+                if (result?.SelectedFranchiseSelectListItemViewModels != null) {
+                    this.SelectedImage?.Franchises?.AddRange(result.SelectedFranchiseSelectListItemViewModels);
+                    return result.SelectedFranchiseSelectListItemViewModels;
+                }
+
+                return null;
+            });
             this._wallpaperRepository = new DiskRepository();
         }
 

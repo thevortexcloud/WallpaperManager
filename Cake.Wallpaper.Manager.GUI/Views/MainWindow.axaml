@@ -21,9 +21,10 @@
     <DockPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Menu HorizontalAlignment="Left" DockPanel.Dock="Top">
             <MenuItem HorizontalAlignment="Left" Header="Save" />
-            <MenuItem Header="Refresh" Command="{Binding Refresh}"/>
-            <MenuItem HorizontalAlignment="Right" Header="Person Management" Click="MenuItem_OpenPersonManagement_OnClick" />
-            <MenuItem Header="Franchise Management" Click="MenuItem_OnClick"/>
+            <MenuItem Header="Refresh" Command="{Binding Refresh}" />
+            <MenuItem HorizontalAlignment="Right" Header="Person Management"
+                      Click="MenuItem_OpenPersonManagement_OnClick" />
+            <MenuItem Header="Franchise Management" Click="MenuItem_OnClick" />
         </Menu>
         <TabControl DockPanel.Dock="Bottom" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch">
             <TabItem Header="Image Tagging">
@@ -85,8 +86,6 @@
                                     <Grid Grid.RowDefinitions="auto auto">
                                         <Expander Grid.Row="0" Grid.Column="0" Header="Franchises"
                                                   IsExpanded="True" HorizontalAlignment="Stretch">
-
-
                                             <DockPanel
                                                 HorizontalAlignment="Stretch">
                                                 <!--   <TextBox DockPanel.Dock="Top" HorizontalAlignment="Stretch"
@@ -96,7 +95,7 @@
                                                               Items="{Binding SelectedImage.Franchises}">
                                                 </ItemsControl>
                                                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
-                                                    <Button Content="Add" />
+                                                    <Button Command="{Binding SelectFranchiseCommand}" Content="Add" />
                                                 </StackPanel>
                                             </DockPanel>
 
