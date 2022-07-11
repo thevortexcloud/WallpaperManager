@@ -121,7 +121,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             NextImagePage = ReactiveCommand.Create(NextPageAsync);
             PreviousImagePage = ReactiveCommand.Create(PreviousPageAsync);
             Refresh = ReactiveCommand.Create(RefreshAsync);
-
+            this.SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
 
             SelectFranchiseCommand = ReactiveCommand.CreateFromTask(async () => {
                 //var store = new MainWindowViewModel();
@@ -139,6 +139,23 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         }
 
         /// <summary>
+        /// Attempts to save the current page of data to the current <see cref="_wallpaperRepository"/>
+        /// </summary>
+        private async Task SaveAsync() {
+            foreach (var wallpaper in CurrentPageData) {
+                try {
+                    //HACK: FOR NOW JUST COPY THE CURRENT FRANCHISE LIST TO WHAT WE ARE TRYING TO SAVE
+                    await this._wallpaperRepository.SaveWallpaperInfoAsync(wallpaper.Wallpaper with {
+                        Franchises = ViewModelUtilities.FlattenFranchiseList(wallpaper.Franchises).Where(o => o.Selected).Select(o => o.Franchise).ToList()
+                    });
+                } catch (Exception ex) {
+                    await Common.ShowExceptionMessageBoxAsync("There was a problem saving the wallpaper", ex);
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
         /// Refreshes the current page
         /// </summary>
         private async void RefreshAsync() {
@@ -150,7 +167,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             var token = this._cancellationTokenSource.Token;
 
             await this.HandleSearchTerm(this.SearchText);
-            await this.ChangePage(null, token);
+            await this.ChangePageAsync(null, token);
         }
 
 
@@ -234,6 +251,73 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
 
                 //this.CurrentPage = 1;
                 this.LastSearchTerm = term;
+            }
+        }
+
+        private async Task SetPageAsync(int pageNumber, bool allowRefresh, CancellationToken token) {
+            try {
+                //Need a semaphore to make sure we only do one of these at a time and to prevent all sorts of weird counting issues
+                await this._slim.WaitAsync();
+                //Set a flag so other things know we are busy, since this is in a semaphore it SHOULD be thread safe
+                IsLoadingImages = true;
+
+                //Can't have a negative page or go over the page limis
+                if (pageNumber > TotalPages || pageNumber < 1 || CurrentPage < 0) {
+                    this._slim.Release();
+                    return;
+                }
+
+                //Need to save the last page number the user was on, and if it's still the same page we don't need to do anything
+                var lastpage = CurrentPage;
+
+                this.CurrentPage = pageNumber;
+
+                //Don't change the page data if the page number has not changed unless something explicitly requests a page refresh 
+                if (CurrentPage == lastpage && !allowRefresh) {
+                    this._slim.Release();
+                    return;
+                }
+
+                //Iterate through all the image data we have and dispose of it or we will run out of memory very quickly
+                Parallel.ForEach(CurrentPageData,
+                    (o) => {
+                        o.Image?.Dispose();
+                        o.ThumbnailImage?.Dispose();
+                        o.Image = null;
+                        o.ThumbnailImage = null;
+                    });
+
+                CurrentPageData.Clear();
+
+                if (token.IsCancellationRequested) {
+                    this._slim.Release();
+                    return;
+                }
+
+                //Grab the data for the current page from the backing list
+                IEnumerable<ImageItemViewModel>? newPageData = this.Images.Skip((CurrentPage - 1) * PAGE_SIZE).Take(PAGE_SIZE);
+
+                //Create a list of tasks we can await at the end, as this is the very, very slow part
+                var imgtasks = new List<Task>();
+                foreach (var data in newPageData) {
+                    //Check if we have a cancellation and break out of the loop if we do
+                    //This allows for cleaner code than a return
+                    if (token.IsCancellationRequested) {
+                        break;
+                    }
+
+                    //Load the images into memory and add it to the task list
+                    imgtasks.Add(data.LoadThumbnailImageAsync(token));
+                    //Add the view model to the current page so the user can actually see it
+                    CurrentPageData.Add(data);
+                }
+
+                //Await everything (which may not be a whole lot if the task was cancelled) to prevent people from spamming the next page and causing all sorts of weird issues
+                await Task.WhenAll(imgtasks);
+                //Finally release the semaphore as we are no longer doing anything
+                this._slim.Release();
+            } finally {
+                IsLoadingImages = false;
             }
         }
 

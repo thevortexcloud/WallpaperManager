@@ -13,7 +13,7 @@ internal sealed class SqlLite : SqlLiteBase {
     #endregion
 
     #region Public methods
-    public Task InsertFranchise(Franchise franchise) {
+    public Task InsertFranchiseAsync(Franchise franchise) {
         SqliteCommand cmd = new SqliteCommand() {
             CommandText = @"INSERT OR REPLACE INTO main.Franchise (Id, Name, ParentId)
             values (@id, @name, @parent);"
@@ -25,7 +25,7 @@ internal sealed class SqlLite : SqlLiteBase {
         return this.ExecuteNonQueryAsync(cmd);
     }
 
-    public async Task InsertFranchiseList(IEnumerable<Franchise> franchises) {
+    public async Task InsertFranchiseListAsync(IEnumerable<Franchise> franchises) {
         await using (var tran = await this.CreateTransactionAsync()) {
             try {
                 SqliteCommand deleteCommand = new SqliteCommand() {
@@ -158,7 +158,7 @@ WHERE PF.Person = @person"
                     }
                 }
 
-                //HACK: FOR NOW JUST YIED EVERYTHING
+                //HACK: FOR NOW JUST YIELD EVERYTHING
                 foreach (var resultval in result) {
                     yield return resultval;
                 }
@@ -347,60 +347,185 @@ COMMIT;"
     /// <param name="person">The person to insert</param>
     /// <exception cref="ArgumentNullException">Thrown when <param name="person"> is null</param></exception>
     public async Task InsertPersonAsync(Person person) {
+        using (var tran = await this.CreateTransactionAsync()) {
+            try {
+                await this.InsertPerson(person, tran);
+            } catch {
+                await tran.RollbackAsync();
+                throw;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Inserts a person into the database, or updates them if they already exist
+    /// </summary>
+    /// <param name="person">The person to insert</param>
+    /// <param name="transaction">The transaction to execute commands with</param>
+    /// <exception cref="ArgumentNullException">Thrown when <param name="person"> is null</param></exception>
+    private async Task InsertPerson(Person person, SqliteTransaction transaction) {
         if (person is null) {
             throw new ArgumentNullException(nameof(person));
         }
 
-        using (var tran = await this.CreateTransactionAsync()) {
-            try {
-                SqliteCommand cmd = new SqliteCommand() {
-                    CommandText = @"
+        SqliteCommand cmd = new SqliteCommand() {
+            CommandText = @"
 INSERT OR REPLACE
 INTO People (id, Name, PrimaryFranchise)
 VALUES (@id, @Name, @PrimaryFranchise);
 
 SELECT last_insert_rowid()",
-                    CommandType = CommandType.Text,
-                };
+            CommandType = CommandType.Text,
+            Transaction = transaction,
+        };
 
-                cmd.Parameters.Add("@id", SqliteType.Integer).Value = person.ID == 0 ? DBNull.Value : person.ID;
-                cmd.Parameters.Add("@Name", SqliteType.Text).Value = person.Name;
-                cmd.Parameters.Add("@PrimaryFranchise", SqliteType.Integer).Value = person?.PrimaryFranchise?.ID == null ? DBNull.Value : person.PrimaryFranchise.ID;
+        cmd.Parameters.Add("@id", SqliteType.Integer).Value = person.ID == 0 ? DBNull.Value : person.ID;
+        cmd.Parameters.Add("@Name", SqliteType.Text).Value = person.Name;
+        cmd.Parameters.Add("@PrimaryFranchise", SqliteType.Integer).Value = person?.PrimaryFranchise?.ID == null ? DBNull.Value : person.PrimaryFranchise.ID;
 
-                //Perso is an auto increment column, however we do  not always want to retrieve the new value
-                //from the database if we are just doing a simple update
-                long personid = 0;
-                if (person.ID == 0) {
-                    personid = await this.ExecuteScalerAsync<long?>(cmd, tran) ?? 0;
-                } else {
-                    personid = person.ID;
-                    await this.ExecuteNonQueryAsync(cmd, tran);
-                }
+        //Person is an auto increment column, however we do not always want to retrieve the new value
+        //from the database if we are just doing a simple update
+        long personid = 0;
+        if (person!.ID == 0) {
+            personid = await this.ExecuteScalerAsync<long?>(cmd, transaction) ?? 0;
+        } else {
+            personid = person.ID;
+            await this.ExecuteNonQueryAsync(cmd, transaction);
+        }
 
-                //Delete all franchise links as it's easier than trying to diff them
-                cmd = new SqliteCommand() {
-                    CommandText = "DELETE FROM PeopleFranchises WHERE Person = @Person",
-                };
-                cmd.Parameters.Add("@Person", SqliteType.Integer).Value = personid;
-                await this.ExecuteNonQueryAsync(cmd, tran);
+        //Delete all franchise links as it's easier than trying to diff them, and since we are in a transaction we can easily roll back if we need to
+        cmd = new SqliteCommand() {
+            CommandText = "DELETE FROM PeopleFranchises WHERE Person = @Person",
+            CommandType = CommandType.Text,
+        };
+        cmd.Parameters.Add("@Person", SqliteType.Integer).Value = personid;
+        await this.ExecuteNonQueryAsync(cmd, transaction);
 
-                //For every franchise we have, we need to insert a new link
-                foreach (var franchise in person.Franchises) {
-                    cmd = new SqliteCommand() {
-                        CommandText = @"
+        //For every franchise we have, we need to insert a new link
+        foreach (var franchise in person.Franchises) {
+            cmd = new SqliteCommand() {
+                CommandText = @"
 INSERT OR
 REPLACE INTO PeopleFranchises (Franchise, Person)
 VALUES (@Franchise, @Person);",
+            };
+
+            cmd.Parameters.Add("@Franchise", SqliteType.Integer).Value = franchise.ID;
+            cmd.Parameters.Add("@Person", SqliteType.Integer).Value = personid;
+
+            await this.ExecuteNonQueryAsync(cmd, transaction);
+        }
+    }
+
+    /// <summary>
+    /// Attempts insert or update the given wallpaper's people links
+    /// </summary>
+    /// <param name="wallpaper">The wallpaper containing the franchises it should link to</param>
+    /// <param name="transaction">The transaction to use for the operation</param>
+    private async Task CreateOrUpdateWallpaperPeopleLinkAsync(Models.Wallpaper wallpaper, SqliteTransaction transaction) {
+        if (!wallpaper?.People?.Any() ?? false) {
+            return;
+        }
+
+        foreach (var person in wallpaper!.People!) {
+            SqliteCommand cmd = new SqliteCommand() {
+                CommandText = @"INSERT OR REPLACE INTO WallpaperPeople (WallpaperID, PersonID)
+values (@WallpaperID, @PersonID);",
+                Transaction = transaction,
+                CommandType = CommandType.Text,
+            };
+            cmd.Parameters.Add("@WallpaperID", SqliteType.Integer).Value = wallpaper.ID;
+            cmd.Parameters.Add("@PersonID", SqliteType.Integer).Value = person.ID;
+
+            await this.ExecuteNonQueryAsync(cmd, transaction);
+        }
+    }
+
+    /// <summary>
+    /// Attempts insert or update the given wallpaper's franchise links
+    /// </summary>
+    /// <param name="wallpaper">The wallpaper containing the franchises it should link to</param>
+    /// <param name="transaction">The transaction to use for the operation</param>
+    private async Task CreateOrUpdateWallpaperFranchisesLinkAsync(Models.Wallpaper wallpaper, SqliteTransaction transaction) {
+        if (!wallpaper?.Franchises?.Any() ?? false) {
+            return;
+        }
+
+        foreach (var franchise in wallpaper!.Franchises!) {
+            SqliteCommand cmd = new SqliteCommand() {
+                CommandText = @"INSERT OR REPLACE INTO WallpaperFranchise (WallpaperID, FranchiseID)
+values (@WallpaperID, @FranchiseID);",
+                Transaction = transaction,
+                CommandType = CommandType.Text,
+            };
+            cmd.Parameters.Add("@WallpaperID", SqliteType.Integer).Value = wallpaper.ID;
+            cmd.Parameters.Add("@FranchiseID", SqliteType.Integer).Value = franchise.ID;
+
+            await this.ExecuteNonQueryAsync(cmd, transaction);
+        }
+    }
+
+    /// <summary>
+    /// Attempts To create or an insert a wallpaper into the wallpaper table
+    /// </summary>
+    /// <remarks>Does NOT insert related records such as people or franchises
+    /// <para>The caller is responsible for committing or rolling back the transaction</para></remarks>
+    /// <param name="wallpaper">The wallpaper to insert</param>
+    /// <param name="transaction">The transaction to use for the insert</param>
+    /// <returns>The ID of the wallpaper that was created or modified</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="wallpaper"/> is null</exception>
+    private async Task<int> CreateOrInsertWallpaperHeaderAsync(Models.Wallpaper wallpaper, SqliteTransaction transaction) {
+        if (wallpaper is null) {
+            throw new ArgumentNullException(nameof(wallpaper));
+        }
+
+        SqliteCommand cmd = new SqliteCommand() {
+            CommandText = @"INSERT OR REPLACE INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source)
+values (@id, @name, @dateadded, @filename, @author, @source);
+    SELECT last_insert_rowid();",
+            Transaction = transaction,
+            CommandType = CommandType.Text,
+        };
+        cmd.Parameters.Add("@id", SqliteType.Integer).Value = wallpaper.ID == 0 ? DBNull.Value : wallpaper.ID;
+        cmd.Parameters.Add("@name", SqliteType.Text).Value = string.IsNullOrWhiteSpace(wallpaper.Name) ? DBNull.Value : wallpaper.Name;
+        cmd.Parameters.Add("@dateadded", SqliteType.Integer).Value = wallpaper.DateAdded == DateTime.MinValue || wallpaper.DateAdded == DateTime.UnixEpoch ? ((DateTimeOffset) DateTime.Now).ToUnixTimeSeconds() : ((DateTimeOffset) wallpaper.DateAdded).ToUnixTimeSeconds();
+        cmd.Parameters.Add("@filename", SqliteType.Text).Value = wallpaper.FileName;
+        cmd.Parameters.Add("@author", SqliteType.Text).Value = string.IsNullOrWhiteSpace(wallpaper.Author) ? DBNull.Value : wallpaper.Author;
+        cmd.Parameters.Add("@source", SqliteType.Text).Value = string.IsNullOrWhiteSpace(wallpaper.Source) ? DBNull.Value : wallpaper.Source;
+
+        //Unlikely this cast will cause an overflow, but it's probably something should know about just in case
+        checked {
+            return (int) await this.ExecuteScalerAsync<long>(cmd, transaction);
+        }
+    }
+
+    /// <summary>
+    /// Attempts to insert or update the given wallpaper transactionally with all related linked data
+    /// </summary>
+    /// <param name="wallpaper">The wallpaper to attempt to insert</param>
+    public async Task SaveWallpaperAsync(Models.Wallpaper wallpaper) {
+        //Create a transaction since we are going to be doing a lot of things that could fail
+        using (var tran = await this.CreateTransactionAsync()) {
+            try {
+                //Update/insert the wallpaper header data
+                var createdID = await this.CreateOrInsertWallpaperHeaderAsync(wallpaper, tran);
+                //If we have a different id (id of 0 is for new wallpapers) we need to update the references we have since it's used for all the links we are about to do
+                //Luckily records make this very simple for us
+                if (createdID != wallpaper.ID) {
+                    wallpaper = wallpaper with {
+                        ID = createdID
                     };
-
-                    cmd.Parameters.Add("@Franchise", SqliteType.Integer).Value = franchise.ID;
-                    cmd.Parameters.Add("@Person", SqliteType.Integer).Value = personid;
-
-                    await this.ExecuteNonQueryAsync(cmd, tran);
                 }
 
+                //Create the links in the people table
+                await this.CreateOrUpdateWallpaperPeopleLinkAsync(wallpaper, tran);
+                //Create the links in the franchise tables
+                await this.CreateOrUpdateWallpaperFranchisesLinkAsync(wallpaper, tran);
+
+                //If everything worked, commit the transaction
                 await tran.CommitAsync();
             } catch {
+                //If we get any errors at all, abort and rethrow
                 await tran.RollbackAsync();
                 throw;
             }

@@ -19,7 +19,11 @@ using Cake.Wallpaper.Manager.Core.Models;
 namespace Cake.Wallpaper.Manager.GUI.ViewModels;
 
 public class ImageItemViewModel : ViewModelBase {
-    private readonly Core.Models.Wallpaper _wallpaper;
+    /// <summary>
+    /// The underlying wallpaper instance that this model is backed by. Directly changing values on here will not allow for proper binding
+    /// </summary>
+    public Core.Models.Wallpaper Wallpaper { get; }
+
     private Bitmap? _thumbnailImage;
     private Bitmap? _image;
     private Thickness _imageBorderThickness;
@@ -42,46 +46,45 @@ public class ImageItemViewModel : ViewModelBase {
 
     public ObservableCollection<FranchiseSelectListItemViewModel>? Franchises { get; } = new ObservableCollection<FranchiseSelectListItemViewModel>();
 
-
-    public string? FileName => this._wallpaper.FileName;
+    public string? FileName => this.Wallpaper.FileName;
 
     public string? Author {
-        get { return this._wallpaper.Author; }
+        get { return this.Wallpaper.Author; }
         set {
-            if (value != this._wallpaper.Author) {
-                this._wallpaper.Author = value;
-                this.RaisePropertyChanged(nameof(this._wallpaper.Author));
+            if (value != this.Wallpaper.Author) {
+                this.Wallpaper.Author = value;
+                this.RaisePropertyChanged(nameof(this.Wallpaper.Author));
             }
         }
     }
 
     public string? Source {
-        get { return this._wallpaper.Source; }
+        get { return this.Wallpaper.Source; }
         set {
-            if (value != this._wallpaper.Source) {
-                this._wallpaper.Source = value;
-                this.RaisePropertyChanged(nameof(this._wallpaper.Source));
+            if (value != this.Wallpaper.Source) {
+                this.Wallpaper.Source = value;
+                this.RaisePropertyChanged(nameof(this.Wallpaper.Source));
             }
         }
     }
 
     public string? Name {
         get {
-            if (!string.IsNullOrWhiteSpace(this._wallpaper.Name)) {
-                return this._wallpaper.Name;
+            if (!string.IsNullOrWhiteSpace(this.Wallpaper.Name)) {
+                return this.Wallpaper.Name;
             } else {
-                return this._wallpaper.FileName;
+                return this.Wallpaper.FileName;
             }
         }
         set {
-            if (value != this._wallpaper.Name) {
-                this._wallpaper.Name = value;
-                this.RaisePropertyChanged(nameof(this._wallpaper.Name));
+            if (value != this.Wallpaper.Name) {
+                this.Wallpaper.Name = value;
+                this.RaisePropertyChanged(nameof(this.Wallpaper.Name));
             }
         }
     }
 
-    public Franchise PrimaryFranchise => this?._wallpaper?.Franchises?.FirstOrDefault();
+    public Franchise PrimaryFranchise => this?.Wallpaper?.Franchises?.FirstOrDefault();
 
 
     public Thickness ImageBorderThickness {
@@ -90,12 +93,12 @@ public class ImageItemViewModel : ViewModelBase {
     }
 
     public ImageItemViewModel(Core.Models.Wallpaper wallpaper, IWallpaperRepository repository) {
-        this._wallpaper = wallpaper;
-        foreach (var person in this._wallpaper.People) {
+        this.Wallpaper = wallpaper;
+        foreach (var person in this.Wallpaper.People) {
             this.People.Add(new PersonViewModel(person, repository));
         }
 
-        foreach (var franchise in this._wallpaper?.Franchises?.Select(o => new FranchiseSelectListItemViewModel(o))) {
+        foreach (var franchise in this.Wallpaper?.Franchises?.Select(o => new FranchiseSelectListItemViewModel(o))) {
             Franchises.Add(franchise);
         }
     }
@@ -137,7 +140,7 @@ public class ImageItemViewModel : ViewModelBase {
             return;
         }
 
-        var img = await this._wallpaper.LoadImageAsync();
+        var img = await this.Wallpaper.LoadImageAsync();
         if (img is null) {
             return;
         }
@@ -177,7 +180,7 @@ public class ImageItemViewModel : ViewModelBase {
             return;
         }
 
-        var img = await this._wallpaper.LoadImageAsync();
+        var img = await this.Wallpaper.LoadImageAsync();
         if (img is null) {
             return;
         }

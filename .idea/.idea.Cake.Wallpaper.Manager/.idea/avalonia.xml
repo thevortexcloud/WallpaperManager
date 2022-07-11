@@ -8,6 +8,7 @@
         <entry key="Cake.Wallpaper.Manager.GUI/MainWindow.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
         <entry key="Cake.Wallpaper.Manager.GUI/Views/CheckboxListItemView.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
         <entry key="Cake.Wallpaper.Manager.GUI/Views/FranchiseManagementWindow.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
+        <entry key="Cake.Wallpaper.Manager.GUI/Views/FranchiseSelectDialogueWindow.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
         <entry key="Cake.Wallpaper.Manager.GUI/Views/FranchiseSelectListItemView.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
         <entry key="Cake.Wallpaper.Manager.GUI/Views/ImageItem.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />
         <entry key="Cake.Wallpaper.Manager.GUI/Views/ImageItemView.axaml" value="Cake.Wallpaper.Manager.GUI/Cake.Wallpaper.Manager.GUI.csproj" />

@@ -86,8 +86,10 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
         }
     }
 
-    public Task SaveWallpaperInfoAsync(Models.Wallpaper wallpaper) {
-        throw new NotImplementedException();
+    public async Task SaveWallpaperInfoAsync(Models.Wallpaper wallpaper) {
+        using (DataAccess.SqlLite sqlLite = new SqlLite(ConnectionString)) {
+            await sqlLite.SaveWallpaperAsync(wallpaper);
+        }
     }
 
     public async Task SavePersonInfoAsync(Person person) {
@@ -99,13 +101,13 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
 
     public async Task SaveFranchiseInfoAsync(Franchise franchise) {
         await using (SqlLite sqlLite = new SqlLite(ConnectionString)) {
-            await sqlLite.InsertFranchise(franchise);
+            await sqlLite.InsertFranchiseAsync(franchise);
         }
     }
 
     public async Task SaveFranchiseInfosAsync(IEnumerable<Franchise> franchises) {
         await using (SqlLite sqlLite = new SqlLite(ConnectionString)) {
-            await sqlLite.InsertFranchiseList(franchises);
+            await sqlLite.InsertFranchiseListAsync(franchises);
         }
     }
 }
