@@ -156,16 +156,23 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// Attempts to save the current page of data to the current <see cref="_wallpaperRepository"/>
         /// </summary>
         private async Task SaveAsync() {
-            foreach (var wallpaper in CurrentPageData) {
-                try {
-                    //HACK: FOR NOW JUST COPY THE CURRENT FRANCHISE LIST TO WHAT WE ARE TRYING TO SAVE
-                    await this._wallpaperRepository.SaveWallpaperInfoAsync(wallpaper.Wallpaper with {
-                        Franchises = ViewModelUtilities.FlattenFranchiseList(wallpaper.Franchises).Where(o => o.Selected).Select(o => o.Franchise).ToList()
-                    });
-                } catch (Exception ex) {
-                    await Common.ShowExceptionMessageBoxAsync("There was a problem saving the wallpaper", ex);
-                    break;
+            try {
+                //Waiting for this semaphore will wait for any page changes to complete, which should prevent any partial page saves
+                await this._slim.WaitAsync();
+                foreach (var wallpaper in CurrentPageData) {
+                    try {
+                        //HACK: FOR NOW JUST COPY THE CURRENT FRANCHISE LIST TO WHAT WE ARE TRYING TO SAVE
+                        await this._wallpaperRepository.SaveWallpaperInfoAsync(wallpaper.Wallpaper with {
+                            Franchises = ViewModelUtilities.FlattenFranchiseList(wallpaper.Franchises).Where(o => o.Selected).Select(o => o.Franchise).ToList()
+                        });
+                    } catch (Exception ex) {
+                        await Common.ShowExceptionMessageBoxAsync("There was a problem saving the wallpaper", ex);
+                        break;
+                    }
                 }
+            } finally {
+                //TODO: Safer handling of the release, this is potentially dangerous as there may be other methods waiting on this
+                this._slim.Release();
             }
         }
 
