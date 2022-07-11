@@ -54,7 +54,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// <remarks>
         /// Setting this to a high value will significantly increase memory consumption and load times for pages
         /// </remarks>
-        private const int PAGE_SIZE = 150;
+        private const int PAGE_SIZE = 100;
         #endregion
 
         #region Public properties
