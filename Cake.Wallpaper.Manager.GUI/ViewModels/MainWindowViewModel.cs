@@ -26,7 +26,14 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         #endregion
 
         #region Private readonly variables
+        /// <summary>
+        /// The current wallpaper repository
+        /// </summary>
         private readonly IWallpaperRepository _wallpaperRepository;
+
+        /// <summary>
+        /// A shared semaphore to prevent race conditions during save and data retrieval operations
+        /// </summary>
         private readonly SemaphoreSlim _slim = new SemaphoreSlim(1, 1);
         #endregion
 
@@ -110,6 +117,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         public ReactiveCommand<Unit, Unit> SaveCommand { get; }
         #endregion
 
+        #region Public constructor
         public MainWindowViewModel() {
             //Subscribe to the main search box
             //NOTE: For some reason this fires when the window first opens, and then sends us a null value. It's very annoying
@@ -141,7 +149,9 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             });
             this._wallpaperRepository = new DiskRepository();
         }
+        #endregion
 
+        #region Private methods
         /// <summary>
         /// Attempts to save the current page of data to the current <see cref="_wallpaperRepository"/>
         /// </summary>
@@ -337,5 +347,6 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 await this.SetPageAsync(this.CurrentPage, true, token);
             }
         }
+        #endregion
     }
 }
