@@ -104,6 +104,10 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             get => this._searchText;
             set => this.RaiseAndSetIfChanged(ref this._searchText, value);
         }
+
+        public Interaction<Unit, FranchiseSelectDialogueWindowViewModel?> ShowFranchiseSelectDialog { get; } = new Interaction<Unit, FranchiseSelectDialogueWindowViewModel>();
+        public ReactiveCommand<Unit, ObservableCollection<FranchiseSelectListItemViewModel>?> SelectFranchiseCommand { get; }
+        public ReactiveCommand<Unit, Unit> SaveCommand { get; }
         #endregion
 
         public MainWindowViewModel() {
