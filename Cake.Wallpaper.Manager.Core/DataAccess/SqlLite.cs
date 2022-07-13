@@ -466,7 +466,7 @@ values (@WallpaperID, @FranchiseID);",
     }
 
     /// <summary>
-    /// Attempts To create or an insert a wallpaper into the wallpaper table
+    /// Attempts To create or insert a wallpaper into the wallpaper table
     /// </summary>
     /// <remarks>Does NOT insert related records such as people or franchises
     /// <para>The caller is responsible for committing or rolling back the transaction</para></remarks>
@@ -479,9 +479,17 @@ values (@WallpaperID, @FranchiseID);",
             throw new ArgumentNullException(nameof(wallpaper));
         }
 
+        //It's very important we do an UPSERT here or we will accidentally delete all the foreign key links
         SqliteCommand cmd = new SqliteCommand() {
-            CommandText = @"INSERT OR REPLACE INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source)
-values (@id, @name, @dateadded, @filename, @author, @source);
+            CommandText = @"INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source)
+values (@id, @name, @dateadded, @filename, @author, @source)
+ ON CONFLICT(id) DO UPDATE SET
+Name = @name,
+     DateAdded = @dateadded,
+     FileName = @filename,
+     Author = @author,
+     Source = @source
+WHERE id = @id;
     SELECT last_insert_rowid();",
             Transaction = transaction,
             CommandType = CommandType.Text,
@@ -495,7 +503,7 @@ values (@id, @name, @dateadded, @filename, @author, @source);
 
         //Unlikely this cast will cause an overflow, but it's probably something should know about just in case
         checked {
-            return (int) await this.ExecuteScalerAsync<long>(cmd, transaction);
+            return wallpaper.ID == 0 ? (int) await this.ExecuteScalerAsync<long>(cmd, transaction) : wallpaper.ID;
         }
     }
 
