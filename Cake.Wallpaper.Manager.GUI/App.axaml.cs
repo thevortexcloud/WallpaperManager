@@ -15,10 +15,10 @@ namespace Cake.Wallpaper.Manager.GUI {
 
         public override void OnFrameworkInitializationCompleted() {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
-                desktop.MainWindow = new MainWindow {
-                    DataContext = new MainWindowViewModel(),
-                };
                 Locator.CurrentMutable.Register<IWallpaperRepository>(() => { return new DiskRepository(); });
+                desktop.MainWindow = new MainWindow {
+                    DataContext = new MainWindowViewModel(Locator.Current.GetService<IWallpaperRepository>()),
+                };
             }
 
             base.OnFrameworkInitializationCompleted();
