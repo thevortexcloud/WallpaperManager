@@ -443,7 +443,12 @@ values (@WallpaperID, @PersonID);",
     /// <param name="wallpaper">The wallpaper containing the franchises it should link to</param>
     /// <param name="transaction">The transaction to use for the operation</param>
     private async Task CreateOrUpdateWallpaperFranchisesLinkAsync(Models.Wallpaper wallpaper, SqliteTransaction transaction) {
-        if (!wallpaper?.Franchises?.Any() ?? false) {
+        if (wallpaper == null) {
+            throw new ArgumentNullException(nameof(wallpaper));
+        }
+
+        //If this is blank we have no idea what to do
+        if (wallpaper.Franchises == null) {
             return;
         }
 
