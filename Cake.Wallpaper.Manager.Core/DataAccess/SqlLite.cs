@@ -458,7 +458,7 @@ values (@WallpaperID, @PersonID);",
         await this.ExecuteNonQueryAsync(cmd, transaction);
 
         //Now repopulate the links based on the data we have
-        foreach (var franchise in wallpaper.Franchises!) {
+        foreach (var franchise in DataUtilities.FlattenFranchiseList(wallpaper.Franchises)) {
             cmd = new SqliteCommand() {
                 CommandText = @"
 
