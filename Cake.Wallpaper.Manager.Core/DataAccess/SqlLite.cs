@@ -517,7 +517,8 @@ WHERE id = @id;
 
         //Unlikely this cast will cause an overflow, but it's probably something should know about just in case
         checked {
-            return wallpaper.ID == 0 ? (int) await this.ExecuteScalerAsync<long>(cmd, transaction) : wallpaper.ID;
+            var result = (int) await this.ExecuteScalerAsync<long>(cmd, transaction);
+            return wallpaper.ID == 0 ? result : wallpaper.ID;
         }
     }
 
