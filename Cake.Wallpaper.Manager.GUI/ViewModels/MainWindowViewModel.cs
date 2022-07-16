@@ -131,9 +131,9 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(this.SelectedImageChanged);
             //Set up our button handlers
-            NextImagePage = ReactiveCommand.Create(NextPageAsync);
-            PreviousImagePage = ReactiveCommand.Create(PreviousPageAsync);
-            Refresh = ReactiveCommand.Create(RefreshAsync);
+            this.NextImagePage = ReactiveCommand.CreateFromTask(NextPageAsync);
+            this.PreviousImagePage = ReactiveCommand.CreateFromTask(PreviousPageAsync);
+            this.Refresh = ReactiveCommand.CreateFromTask(RefreshAsync);
             this.SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
             this.DeleteSelectedFranchiseCommand = ReactiveCommand.Create(() => {
                 var selectedFranchises = this.SelectedImage.Franchises.Select(o => o.FindSelectedFranchises()).ToList();
@@ -186,7 +186,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// <summary>
         /// Refreshes the current page
         /// </summary>
-        private async void RefreshAsync() {
+        private async Task RefreshAsync() {
             if (IsLoadingImages) {
                 this._cancellationTokenSource?.Cancel();
             }
@@ -212,7 +212,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// <summary>
         /// Advances the current image list to the next page
         /// </summary>
-        private async void NextPageAsync() {
+        private async Task NextPageAsync() {
             if (IsLoadingImages) {
                 this._cancellationTokenSource.Cancel();
             }
@@ -226,7 +226,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// <summary>
         /// Advances the current image list to the previous page
         /// </summary>
-        private async void PreviousPageAsync() {
+        private async Task PreviousPageAsync() {
             if (IsLoadingImages) {
                 this._cancellationTokenSource.Cancel();
             }
