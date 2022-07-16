@@ -423,10 +423,6 @@ VALUES (@Franchise, @Person);",
     /// <param name="wallpaper">The wallpaper containing the franchises it should link to</param>
     /// <param name="transaction">The transaction to use for the operation</param>
     private async Task CreateOrUpdateWallpaperPeopleLinkAsync(Models.Wallpaper wallpaper, SqliteTransaction transaction) {
-        if (!wallpaper?.People?.Any() ?? false) {
-            return;
-        }
-
         foreach (var person in wallpaper!.People!) {
             SqliteCommand cmd = new SqliteCommand() {
                 CommandText = @"INSERT OR REPLACE INTO WallpaperPeople (WallpaperID, PersonID)
@@ -451,9 +447,22 @@ values (@WallpaperID, @PersonID);",
             return;
         }
 
-        foreach (var franchise in wallpaper!.Franchises!) {
-            SqliteCommand cmd = new SqliteCommand() {
-                CommandText = @"INSERT OR REPLACE INTO WallpaperFranchise (WallpaperID, FranchiseID)
+        //Delete any existing links
+        SqliteCommand cmd = new SqliteCommand() {
+            CommandText = @"DELETE FROM WallpaperFranchise WHERE WallpaperID = @WallpaperID;",
+            CommandType = CommandType.Text,
+            Transaction = transaction,
+        };
+        cmd.Parameters.Add("@WallpaperID", SqliteType.Integer).Value = wallpaper.ID;
+
+        await this.ExecuteNonQueryAsync(cmd, transaction);
+
+        //Now repopulate the links based on the data we have
+        foreach (var franchise in wallpaper.Franchises!) {
+            cmd = new SqliteCommand() {
+                CommandText = @"
+
+INSERT OR REPLACE INTO WallpaperFranchise (WallpaperID, FranchiseID)
 values (@WallpaperID, @FranchiseID);",
                 Transaction = transaction,
                 CommandType = CommandType.Text,

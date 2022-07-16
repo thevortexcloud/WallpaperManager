@@ -113,7 +113,8 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         }
 
         public Interaction<Unit, FranchiseSelectDialogueWindowViewModel?> ShowFranchiseSelectDialog { get; } = new Interaction<Unit, FranchiseSelectDialogueWindowViewModel>();
-        public ReactiveCommand<Unit, ObservableCollection<FranchiseSelectListItemViewModel>?> SelectFranchiseCommand { get; }
+        public ReactiveCommand<Unit, List<FranchiseSelectListItemViewModel>?> SelectFranchiseCommand { get; }
+        public ReactiveCommand<Unit, Unit> DeleteSelectedFranchiseCommand { get; }
         public ReactiveCommand<Unit, Unit> SaveCommand { get; }
         #endregion
 
@@ -134,15 +135,22 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             PreviousImagePage = ReactiveCommand.Create(PreviousPageAsync);
             Refresh = ReactiveCommand.Create(RefreshAsync);
             this.SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
+            this.DeleteSelectedFranchiseCommand = ReactiveCommand.Create(() => {
+                var selectedFranchises = this.SelectedImage.Franchises.Select(o => o.FindSelectedFranchises()).ToList();
 
-            SelectFranchiseCommand = ReactiveCommand.CreateFromTask(async () => {
+                for (int i = selectedFranchises.Count; i > 0; i--) {
+                    this.SelectedImage.Franchises.Remove(this.SelectedImage.Franchises.Where(o => o.ID == i));
+                }
+            });
+
+            this.SelectFranchiseCommand = ReactiveCommand.CreateFromTask(async () => {
                 //var store = new MainWindowViewModel();
 
                 var result = await ShowFranchiseSelectDialog?.Handle(Unit.Default);
-
-                if (result?.SelectedFranchiseSelectListItemViewModels != null) {
-                    this.SelectedImage?.Franchises?.AddRange(result.SelectedFranchiseSelectListItemViewModels);
-                    return result.SelectedFranchiseSelectListItemViewModels;
+                var franchises = result?.FindSelectedFranchises();
+                if (franchises != null) {
+                    this.SelectedImage?.Franchises?.AddRange(franchises);
+                    return franchises;
                 }
 
                 return null;
@@ -162,9 +170,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 foreach (var wallpaper in CurrentPageData) {
                     try {
                         //HACK: FOR NOW JUST COPY THE CURRENT FRANCHISE LIST TO WHAT WE ARE TRYING TO SAVE
-                        await this._wallpaperRepository.SaveWallpaperInfoAsync(wallpaper.Wallpaper with {
-                            Franchises = ViewModelUtilities.FlattenFranchiseList(wallpaper.Franchises).Where(o => o.Selected).Select(o => o.Franchise).ToList()
-                        });
+                        await this._wallpaperRepository.SaveWallpaperInfoAsync(wallpaper.ConvertToWallpaper());
                     } catch (Exception ex) {
                         await Common.ShowExceptionMessageBoxAsync("There was a problem saving the wallpaper", ex);
                         break;
@@ -173,6 +179,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             } finally {
                 //TODO: Safer handling of the release, this is potentially dangerous as there may be other methods waiting on this
                 this._slim.Release();
+                await this.RefreshAsync();
             }
         }
 
