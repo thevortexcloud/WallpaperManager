@@ -198,7 +198,7 @@ WHERE PF.Person = @person"
                         Name = await wallpaperrdr.IsDBNullAsync(wallpaperNameOrdinal) ? null : wallpaperrdr.GetString(wallpaperNameOrdinal),
                         Author = await wallpaperrdr.IsDBNullAsync(authorOrdinal) ? null : wallpaperrdr.GetString(authorOrdinal),
                         Source = await wallpaperrdr.IsDBNullAsync(sourceOrdinal) ? null : wallpaperrdr.GetString(sourceOrdinal),
-                        //DateAdded = rdr.GetDateTime(dateAddedOrdinal),
+                        DateAdded = DateTimeOffset.FromUnixTimeSeconds(wallpaperrdr.GetInt32(dateAddedOrdinal)).DateTime,
                         FileName = wallpaperrdr.GetString(fileNameOrdinal)
                     };
 
