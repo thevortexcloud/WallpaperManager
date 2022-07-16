@@ -31,12 +31,14 @@ public class FranchiseSelectDialogueWindowViewModel : ViewModelBase {
     /// <summary>
     /// Finds all currently selected child franchises on the window
     /// </summary>
-    /// <returns>A hierarchical list of selected franchises</returns>
+    /// <returns>A list of selected franchises</returns>
     public List<FranchiseSelectListItemViewModel> FindSelectedFranchises() {
         var result = new List<FranchiseSelectListItemViewModel>();
         foreach (var model in this.DbFranchises) {
             result.AddRange(model.FindSelectedFranchises());
+            //HACK:For now just clear these. Ideally we should return a copy of the object without these
             model.ChildFranchises.Clear();
+            model.Franchise?.ChildFranchises?.Clear();
             //Add top level franchises
             if (model.Selected) {
                 result.Add(model);
