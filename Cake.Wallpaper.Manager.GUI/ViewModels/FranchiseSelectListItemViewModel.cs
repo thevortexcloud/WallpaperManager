@@ -81,7 +81,7 @@ public class FranchiseSelectListItemViewModel : ViewModelBase {
     /// Returns a list of all selected child franchises for the current instance
     /// </summary>
     /// <returns>A list of all selected and child franchises</returns>
-    public List<FranchiseSelectListItemViewModel> FindSelectedFranchises() {
+    public List<FranchiseSelectListItemViewModel> FindSelectedChildFranchises() {
         return FindSelectedFranchises(this.ChildFranchises);
     }
     #endregion

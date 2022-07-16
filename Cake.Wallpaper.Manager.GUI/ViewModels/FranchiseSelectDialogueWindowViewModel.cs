@@ -35,7 +35,7 @@ public class FranchiseSelectDialogueWindowViewModel : ViewModelBase {
     public List<FranchiseSelectListItemViewModel> FindSelectedFranchises() {
         var result = new List<FranchiseSelectListItemViewModel>();
         foreach (var model in this.DbFranchises) {
-            result.AddRange(model.FindSelectedFranchises());
+            result.AddRange(model.FindSelectedChildFranchises());
             //HACK:For now just clear these. Ideally we should return a copy of the object without these
             model.ChildFranchises.Clear();
             model.Franchise?.ChildFranchises?.Clear();
