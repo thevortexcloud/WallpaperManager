@@ -119,7 +119,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         #endregion
 
         #region Public constructor
-        public MainWindowViewModel() {
+        public MainWindowViewModel(IWallpaperRepository wallpaperRepository) {
             //Subscribe to the main search box
             //NOTE: For some reason this fires when the window first opens, and then sends us a null value. It's very annoying
             this.WhenAnyValue(x => x.SearchText)
@@ -155,7 +155,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
 
                 return null;
             });
-            this._wallpaperRepository = new DiskRepository();
+            this._wallpaperRepository = wallpaperRepository;
         }
         #endregion
 
