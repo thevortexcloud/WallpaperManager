@@ -8,8 +8,12 @@ public static class DataUtilities {
     /// </summary>
     /// <param name="franchises">The list of franchises to flatten</param>
     /// <returns>The flattened list of franchises</returns>
-    public static IEnumerable<Franchise> FlattenFranchiseList(IEnumerable<Franchise> franchises) {
+    public static IEnumerable<Franchise> FlattenFranchiseList(IEnumerable<Franchise>? franchises) {
         var result = new List<Franchise>();
+        if (franchises is null) {
+            return result;
+        }
+
         foreach (var franchise in franchises) {
             if (franchise.ChildFranchises.Any()) {
                 result.AddRange(FlattenFranchiseList(franchise.ChildFranchises));
