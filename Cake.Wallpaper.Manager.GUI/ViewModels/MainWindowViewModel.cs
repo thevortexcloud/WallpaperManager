@@ -210,15 +210,6 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         }
 
         /// <summary>
-        /// Called when the window opens
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="e"></param>
-        public async void LoadInitialData(Object obj, EventArgs e) {
-            this.Images.Clear();
-        }
-
-        /// <summary>
         /// Advances the current image list to the next page
         /// </summary>
         private async void NextPageAsync() {

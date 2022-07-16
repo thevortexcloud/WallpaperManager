@@ -17,7 +17,6 @@ namespace Cake.Wallpaper.Manager.GUI.Views {
         }
 
         private void TopLevel_OnOpened(object? sender, EventArgs e) {
-            (DataContext as MainWindowViewModel).LoadInitialData(sender, e);
         }
 
         private async Task DoShowFranchiseDialogAsync(InteractionContext<Unit, FranchiseSelectDialogueWindowViewModel?> interaction) {
