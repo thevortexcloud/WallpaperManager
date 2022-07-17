@@ -88,6 +88,8 @@ WHERE PF.Person = @person"
             FROM Franchise,
             under_part
             WHERE Franchise.ParentId = under_part.id
+ ORDER BY under_part.level + 1 DESC,
+             parentid
             )
             SELECT id, name, parentid, level
             FROM under_part
@@ -113,6 +115,8 @@ WHERE PF.Person = @person"
             FROM Franchise,
             under_part
             WHERE Franchise.ParentId = under_part.id
+               ORDER BY under_part.level + 1 DESC,
+             parentid
             )
             SELECT id, name, parentid, level
             FROM under_part
@@ -128,39 +132,19 @@ WHERE PF.Person = @person"
         using (var rdr = await this.ExecuteDataReaderAsync(cmd)) {
             if (rdr.HasRows) {
                 int idOrdinal = rdr.GetOrdinal("id"),
-                    parnetIdOrdinal = rdr.GetOrdinal("parentid"),
+                    parentIDOrdinal = rdr.GetOrdinal("parentid"),
                     nameOrdinal = rdr.GetOrdinal("name"),
                     levelOrdinal = rdr.GetOrdinal("level");
 
                 var franchises = new List<Franchise>();
                 var result = new HashSet<Franchise>();
                 while (await rdr.ReadAsync()) {
-                    franchises.Add(new Franchise() {
+                    yield return new Franchise() {
                         Name = rdr.GetString(nameOrdinal),
                         ID = rdr.GetInt32(idOrdinal),
-                        ParentID = await rdr.IsDBNullAsync(parnetIdOrdinal) ? null : rdr.GetInt32(parnetIdOrdinal),
-                    });
-                }
-
-                //We can use a dictionary to build the child parent relationships, keyed by the id
-                var dict = franchises.ToDictionary(o => o.ID);
-                foreach (var val in dict.Values) {
-                    //If we have no parent ID this is a top level item and can be added directly
-                    if (val.ParentID is null) {
-                        result.Add(val);
-                        //Check if we have a parent we can link to
-                    } else if (dict.ContainsKey(val.ParentID.Value)) {
-                        dict[val.ParentID.Value].ChildFranchises.Add(val);
-                    } else {
-                        //All else fails just add the value to the list as a fake top level item
-                        //This could happen if the parent was deleted for some reason
-                        result.Add(val);
-                    }
-                }
-
-                //HACK: FOR NOW JUST YIELD EVERYTHING
-                foreach (var resultval in result) {
-                    yield return resultval;
+                        ParentID = await rdr.IsDBNullAsync(parentIDOrdinal) ? null : rdr.GetInt32(parentIDOrdinal),
+                        Depth = rdr.GetInt32(levelOrdinal)
+                    };
                 }
             }
         }
@@ -224,7 +208,7 @@ WHERE WallpaperID = @wallpaper"
                                 };
                                 int? primaryfranchiseid = await personrdr.IsDBNullAsync(primaryFranchiseOrdinal) ? null : personrdr.GetInt32(primaryFranchiseOrdinal);
                                 if (primaryfranchiseid.HasValue && primaryfranchiseid != 0) {
-                                    person.PrimaryFranchise = DataUtilities.FlattenFranchiseList(person.Franchises).FirstOrDefault(o => o.ID == primaryfranchiseid);
+                                    person.PrimaryFranchise = person.Franchises.FirstOrDefault(o => o.ID == primaryfranchiseid);
                                 }
 
                                 wallpaper.People.Add(person);
@@ -306,7 +290,7 @@ WHERE PF.Person = @person",
                         //Find the primary franchise in the list and set it
                         int? primaryfranchiseid = await rdr.IsDBNullAsync(primaryFranchiseOrdinal) ? null : rdr.GetInt32(primaryFranchiseOrdinal);
                         if (primaryfranchiseid != 0) {
-                            person.PrimaryFranchise = DataUtilities.FlattenFranchiseList(person.Franchises).FirstOrDefault(o => o.ID == primaryfranchiseid);
+                            person.PrimaryFranchise = person.Franchises.FirstOrDefault(o => o.ID == primaryfranchiseid);
                         }
 
                         yield return person;
@@ -464,7 +448,7 @@ values (@WallpaperID, @PersonID);",
         await this.ExecuteNonQueryAsync(cmd, transaction);
 
         //Now repopulate the links based on the data we have
-        foreach (var franchise in DataUtilities.FlattenFranchiseList(wallpaper.Franchises)) {
+        foreach (var franchise in wallpaper.Franchises) {
             cmd = new SqliteCommand() {
                 CommandText = @"
 

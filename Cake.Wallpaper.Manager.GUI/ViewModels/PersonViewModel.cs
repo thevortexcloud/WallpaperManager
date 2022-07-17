@@ -41,13 +41,9 @@ public class PersonViewModel : ViewModelBase {
         }
     }
 
-    public IEnumerable<FranchiseSelectListItemViewModel> FlattenFranchiseList() {
-        return ViewModelUtilities.FlattenFranchiseList(this.FranchiseSelectListItemViewModels);
-    }
-
     public async Task SavePersonAsync() {
         _person.Franchises.Clear();
-        _person.Franchises.UnionWith(ViewModelUtilities.FlattenFranchiseList(this.FranchiseSelectListItemViewModels).Where(o => o.Selected).Select(o => o.Franchise));
+        _person.Franchises.UnionWith(this.FranchiseSelectListItemViewModels.Where(o => o.Selected).Select(o => o.Franchise));
         await this._wallpaperRepository.SavePersonInfoAsync(this._person);
     }
 

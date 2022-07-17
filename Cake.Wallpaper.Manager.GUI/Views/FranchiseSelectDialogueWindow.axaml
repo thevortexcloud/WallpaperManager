@@ -15,7 +15,9 @@
             <MenuItem Header="Cancel"></MenuItem>
         </Menu>
         <TextBox Watermark="Search..." DockPanel.Dock="Top"></TextBox>
-        <ListBox DockPanel.Dock="Left" Items="{Binding DbFranchises}"></ListBox>
-        <ListBox DockPanel.Dock="Right" Items="{Binding SelectedFranchiseSelectListItemViewModels}"></ListBox>
+        <!--<ListBox DockPanel.Dock="Left" Items="{Binding DbFranchises}"></ListBox>-->
+        <ListBox
+            DockPanel.Dock="Right" Items="{Binding DbFranchises}">
+        </ListBox>
     </DockPanel>
 </Window>

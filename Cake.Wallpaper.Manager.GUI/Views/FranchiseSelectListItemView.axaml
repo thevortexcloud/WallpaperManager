@@ -8,11 +8,8 @@
     <Design.DataContext>
         <viewModels:FranchiseSelectListItemViewModel />
     </Design.DataContext>
-    <Grid ColumnDefinitions="auto *" HorizontalAlignment="Stretch" RowDefinitions="Auto *">
+    <Grid Margin="{Binding Margin}" ColumnDefinitions="auto *" HorizontalAlignment="Stretch" RowDefinitions="Auto *">
         <Label VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0 0 2 0" Content="{Binding Name}" />
-        <CheckBox HorizontalAlignment="Right" Grid.Column="1" IsChecked="{Binding Selected}" />
-        <ItemsControl Margin="10 0 0 0" Grid.ColumnSpan="2" Grid.Row="1" Items="{Binding ChildFranchises }">
-
-        </ItemsControl>
+        <CheckBox HorizontalAlignment="Right" Grid.Row="0" Grid.Column="1" IsChecked="{Binding Selected}" />
     </Grid>
 </UserControl>

@@ -6,7 +6,6 @@ using Cake.Wallpaper.Manager.Core.Interfaces;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using Cake.Wallpaper.Manager.Core;
 using Cake.Wallpaper.Manager.Core.Models;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -88,8 +87,11 @@ public sealed class FranchiseManagementViewModel : ViewModelBase {
         this.Franchises.Clear();
         IAsyncEnumerable<Franchise>? franchises = null;
         franchises = string.IsNullOrWhiteSpace(searchTerm) ? this._wallpaperRepository.RetrieveFranchises() : this._wallpaperRepository.RetrieveFranchises(searchTerm);
+        if (franchises is null || !await franchises.AnyAsync()) {
+            return;
+        }
 
-        foreach (var franchise in DataUtilities.FlattenFranchiseList(franchises.ToEnumerable()).Select(o => new FranchiseSelectListItemViewModel(o))) {
+        await foreach (var franchise in franchises.Select(o => new FranchiseSelectListItemViewModel(o))) {
             Franchises.Add(franchise);
         }
     }

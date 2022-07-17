@@ -147,7 +147,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 //var store = new MainWindowViewModel();
 
                 var result = await ShowFranchiseSelectDialog?.Handle(Unit.Default);
-                var franchises = result?.FindSelectedFranchises();
+                var franchises = result?.DbFranchises.Where(o => o.Selected);
                 if (franchises != null) {
                     this.SelectedImage?.Franchises?.AddRange(franchises);
                     return franchises;
