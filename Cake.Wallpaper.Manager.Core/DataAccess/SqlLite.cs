@@ -350,6 +350,7 @@ COMMIT;"
         using (var tran = await this.CreateTransactionAsync()) {
             try {
                 await this.InsertPerson(person, tran);
+                await tran.CommitAsync();
             } catch {
                 await tran.RollbackAsync();
                 throw;
