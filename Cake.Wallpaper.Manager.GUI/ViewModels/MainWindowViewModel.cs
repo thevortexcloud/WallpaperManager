@@ -138,11 +138,18 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             this.PreviousImagePage = ReactiveCommand.CreateFromTask(PreviousPageAsync);
             this.Refresh = ReactiveCommand.CreateFromTask(RefreshAsync);
             this.SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
-            this.DeleteSelectedFranchiseCommand = ReactiveCommand.Create(() => {
-                var selectedFranchises = this.SelectedImage.Franchises.Select(o => o.FindSelectedFranchises()).ToList();
+            this.DeleteSelectedFranchiseCommand = ReactiveCommand.CreateFromTask(async () => {
+                try {
+                    if (this.SelectedImage is null || !(this.SelectedImage.Franchises?.Any() ?? false)) {
+                        return;
+                    }
 
-                for (int i = selectedFranchises.Count; i > 0; i--) {
-                    this.SelectedImage.Franchises.Remove(this.SelectedImage.Franchises.Where(o => o.ID == i));
+                    //Find every selected franchise
+                    var selectedFranchises = this.SelectedImage.Franchises.Where(o => o.Selected).ToList();
+                    //Now remove them from the list, this will get saved properly when the user hits save
+                    this.SelectedImage.Franchises.RemoveMany(selectedFranchises);
+                } catch (Exception ex) {
+                    await Common.ShowExceptionMessageBoxAsync("There was a problem removing a franchise", ex);
                 }
             });
 
