@@ -165,6 +165,32 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
 
                 return null;
             });
+
+            this.SelectPersonCommand = ReactiveCommand.CreateFromTask(async () => {
+                //Can't do anything if nothing is selected
+                if (this.SelectedImage is null) {
+                    return null;
+                }
+
+                var result = await ShowPersonSelectDialog?.Handle(Unit.Default);
+                var franchises = (IEnumerable<PersonViewModel>) result?.SelectedPeople;
+                if (franchises != null) {
+                    this.SelectedImage?.People?.AddRange(franchises);
+                    return franchises;
+                }
+
+                return null;
+            });
+
+            this.DeletePersonCommand = ReactiveCommand.Create(() => {
+                //Can't do anything if nothing is selected
+                if (this.SelectedImage is null) {
+                    return;
+                }
+
+                //Just do a simple remove from the people list. the save will fix everything up when it hits the storage
+                this.SelectedImage.People.RemoveMany(this.SelectedImage.SelectedPeople);
+            });
             this._wallpaperRepository = wallpaperRepository;
         }
         #endregion
