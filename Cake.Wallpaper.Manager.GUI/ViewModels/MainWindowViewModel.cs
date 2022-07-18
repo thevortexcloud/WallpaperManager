@@ -113,7 +113,10 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         }
 
         public Interaction<Unit, FranchiseSelectDialogueWindowViewModel?> ShowFranchiseSelectDialog { get; } = new Interaction<Unit, FranchiseSelectDialogueWindowViewModel>();
-        public ReactiveCommand<Unit, List<FranchiseSelectListItemViewModel>?> SelectFranchiseCommand { get; }
+        public Interaction<Unit, PersonSelectWindowViewModel?> ShowPersonSelectDialog { get; } = new Interaction<Unit, PersonSelectWindowViewModel>();
+        public ReactiveCommand<Unit, IEnumerable<PersonViewModel>?> SelectPersonCommand { get; }
+        public ReactiveCommand<Unit, Unit> DeletePersonCommand { get; }
+        public ReactiveCommand<Unit, IEnumerable<FranchiseSelectListItemViewModel>?> SelectFranchiseCommand { get; }
         public ReactiveCommand<Unit, Unit> DeleteSelectedFranchiseCommand { get; }
         public ReactiveCommand<Unit, Unit> SaveCommand { get; }
         #endregion

@@ -409,9 +409,17 @@ VALUES (@Franchise, @Person);",
     /// <param name="wallpaper">The wallpaper containing the franchises it should link to</param>
     /// <param name="transaction">The transaction to use for the operation</param>
     private async Task CreateOrUpdateWallpaperPeopleLinkAsync(Models.Wallpaper wallpaper, SqliteTransaction transaction) {
+        SqliteCommand cmd = new SqliteCommand() {
+            CommandText = @"DELETE FROM WallpaperPeople WHERE WallpaperID = @WallpaperID",
+            Transaction = transaction,
+            CommandType = CommandType.Text,
+        };
+        cmd.Parameters.Add("@WallpaperID", SqliteType.Integer).Value = wallpaper.ID;
+        await this.ExecuteNonQueryAsync(cmd, transaction);
+
         foreach (var person in wallpaper!.People!) {
-            SqliteCommand cmd = new SqliteCommand() {
-                CommandText = @"INSERT OR REPLACE INTO WallpaperPeople (WallpaperID, PersonID)
+            cmd = new SqliteCommand() {
+                CommandText = @"INSERT INTO WallpaperPeople (WallpaperID, PersonID)
 values (@WallpaperID, @PersonID);",
                 Transaction = transaction,
                 CommandType = CommandType.Text,

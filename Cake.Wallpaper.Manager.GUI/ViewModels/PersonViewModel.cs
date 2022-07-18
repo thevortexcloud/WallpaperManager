@@ -21,6 +21,7 @@ public class PersonViewModel : ViewModelBase {
     }
 
     public Franchise? PrimaryFranchise => this._person.PrimaryFranchise;
+    public Person Person => this._person;
     public ObservableCollection<FranchiseSelectListItemViewModel> FranchiseSelectListItemViewModels { get; } = new ObservableCollection<FranchiseSelectListItemViewModel>();
     public int? ID => this._person.ID;
 
@@ -31,7 +32,8 @@ public class PersonViewModel : ViewModelBase {
     public PersonViewModel(Person person, IWallpaperRepository wallpaperRepository) {
         this._person = person;
         this._wallpaperRepository = wallpaperRepository;
-        LoadDataAsync();
+        //TODO:Move this into an activator
+        LoadDataAsync().ConfigureAwait(false).GetAwaiter();
     }
 
     public async Task LoadDataAsync() {

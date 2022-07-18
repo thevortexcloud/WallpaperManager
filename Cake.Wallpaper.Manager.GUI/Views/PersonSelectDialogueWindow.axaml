@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:Cake.Wallpaper.Manager.GUI.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="550"
+        x:Class="Cake.Wallpaper.Manager.GUI.Views.PersonSelectDialogueWindow"
+        Title="PersonManagamentWindow"
+        TransparencyLevelHint="Blur"
+        Background="#C0000000"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Design.DataContext>
+        <viewModels:PersonSelectWindowViewModel />
+    </Design.DataContext>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_Done" Command="{Binding DoneCommand}"></MenuItem>
+        </Menu>
+        <StackPanel Orientation="Vertical" DockPanel.Dock="Bottom">
+            <TextBox HorizontalAlignment="Stretch" Watermark="Search..."></TextBox>
+            <ListBox SelectionMode="Multiple" VerticalAlignment="Stretch" SelectedItems="{Binding SelectedPeople}"
+                     Items="{Binding People}">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"></WrapPanel>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+            </ListBox>
+        </StackPanel>
+    </DockPanel>
+</Window>
