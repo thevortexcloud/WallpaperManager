@@ -163,7 +163,7 @@ WHERE PF.Person = @person"
         } else {
             wallpapercmd = new SqliteCommand() {
                 CommandText = @"SELECT id,Name,DateAdded, Author, FileName, Source FROM Wallpapers
-                                                   WHERE name LIKE '%' +@name+'%' OR Filename LIKE '%'+@name+'%'",
+                                                   WHERE name LIKE '%' || @name ||'%' OR Filename LIKE '%' || @name ||'%'",
             };
             wallpapercmd.Parameters.Add("@name", SqliteType.Text).Value = searchTerm;
         }
@@ -176,6 +176,7 @@ WHERE PF.Person = @person"
                     authorOrdinal = wallpaperrdr.GetOrdinal(nameof(Models.Wallpaper.Author)),
                     fileNameOrdinal = wallpaperrdr.GetOrdinal(nameof(Models.Wallpaper.FileName)),
                     sourceOrdinal = wallpaperrdr.GetOrdinal(nameof(Models.Wallpaper.Source));
+
                 while (await wallpaperrdr.ReadAsync()) {
                     var wallpaper = new Models.Wallpaper() {
                         ID = wallpaperrdr.GetInt32(wallpaperIdOrdinal),
