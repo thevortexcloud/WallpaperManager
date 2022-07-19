@@ -150,8 +150,16 @@ public class PersonManagementViewModel : ViewModelBase {
 
     #region Public methods
     public async Task SavePersonAsync() {
-        await SelectedPerson.SavePersonAsync(this.Franchises.Where(o => o.Selected).Select(o => o.Franchise));
-        await this.LoadDataAsync();
+        try {
+            if (this.SelectedPerson is null) {
+                return;
+            }
+
+            await SelectedPerson.SavePersonAsync(this.Franchises.Where(o => o.Selected).Select(o => o.Franchise));
+            await this.LoadDataAsync();
+        } catch (Exception ex) {
+            await Common.ShowExceptionMessageBoxAsync("There was a problem saving a person", ex);
+        }
     }
     #endregion
 }
