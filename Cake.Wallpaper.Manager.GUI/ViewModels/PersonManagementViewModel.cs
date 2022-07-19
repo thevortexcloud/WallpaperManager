@@ -48,9 +48,9 @@ public class PersonManagementViewModel : ViewModelBase {
         //TODO: DON'T USE LOCATOR PATTERN
         this._wallpaperRepository = Locator.Current.GetService<IWallpaperRepository>();
 
-        SavePerson = ReactiveCommand.Create(SavePersonAsync);
+        SavePerson = ReactiveCommand.CreateFromTask(SavePersonAsync);
         NewPerson = ReactiveCommand.Create(CreateNewPerson);
-        DeletePerson = ReactiveCommand.Create(DeletePersonAsync);
+        DeletePerson = ReactiveCommand.CreateFromTask(DeletePersonAsync);
 
         this.WhenAnyValue(o => o.FranchiseSearchTerm)
             .Throttle(TimeSpan.FromMilliseconds(500))
@@ -59,7 +59,8 @@ public class PersonManagementViewModel : ViewModelBase {
         this.WhenAnyValue(o => o.SelectedPerson)
             .Subscribe(OnSelectedPersonChange);
 
-        this.LoadDataAsync();
+        //TODO:Move this into an activator
+        this.LoadDataAsync().ConfigureAwait(false).GetAwaiter();
     }
     #endregion
 
@@ -67,7 +68,7 @@ public class PersonManagementViewModel : ViewModelBase {
     /// <summary>
     /// Deletes the currently selected person from the current <see cref="_wallpaperRepository"/>
     /// </summary>
-    private async void DeletePersonAsync() {
+    private async Task DeletePersonAsync() {
         if (this.SelectedPerson is null) {
             return;
         }
@@ -148,7 +149,7 @@ public class PersonManagementViewModel : ViewModelBase {
     #endregion
 
     #region Public methods
-    public async void SavePersonAsync() {
+    public async Task SavePersonAsync() {
         await SelectedPerson.SavePersonAsync(this.Franchises.Where(o => o.Selected).Select(o => o.Franchise));
         await this.LoadDataAsync();
     }
