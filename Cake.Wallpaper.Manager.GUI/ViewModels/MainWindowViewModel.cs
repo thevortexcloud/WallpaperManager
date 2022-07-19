@@ -20,7 +20,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
     public class MainWindowViewModel : ViewModelBase {
         #region Private variables
         private string _searchText;
-        private ImageItemViewModel _selectedImage;
+        private ImageItemViewModel? _selectedImage;
         private CancellationTokenSource _cancellationTokenSource;
         private int _currentPage = 0;
         #endregion
@@ -61,7 +61,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// <remarks>
         /// Setting this to a high value will significantly increase memory consumption and load times for pages
         /// </remarks>
-        private const int PAGE_SIZE = 100;
+        private const int PAGE_SIZE = 60;
         #endregion
 
         #region Public properties
@@ -99,7 +99,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// <summary>
         /// Gets/sets the current image a user has selected
         /// </summary>
-        public ImageItemViewModel SelectedImage {
+        public ImageItemViewModel? SelectedImage {
             get => this._selectedImage;
             set => this.RaiseAndSetIfChanged(ref this._selectedImage, value);
         }
@@ -133,6 +133,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             this.WhenAnyValue(o => o.SelectedImage)
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(this.SelectedImageChanged);
+
             //Set up our button handlers
             this.NextImagePage = ReactiveCommand.CreateFromTask(NextPageAsync);
             this.PreviousImagePage = ReactiveCommand.CreateFromTask(PreviousPageAsync);
@@ -205,7 +206,6 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 await this._slim.WaitAsync();
                 foreach (var wallpaper in CurrentPageData) {
                     try {
-                        //HACK: FOR NOW JUST COPY THE CURRENT FRANCHISE LIST TO WHAT WE ARE TRYING TO SAVE
                         await this._wallpaperRepository.SaveWallpaperInfoAsync(wallpaper.ConvertToWallpaper());
                     } catch (Exception ex) {
                         await Common.ShowExceptionMessageBoxAsync("There was a problem saving the wallpaper", ex);
