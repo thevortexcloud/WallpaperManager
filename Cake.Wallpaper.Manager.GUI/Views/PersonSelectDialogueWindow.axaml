@@ -23,6 +23,7 @@
                  VerticalAlignment="Stretch"
                  SelectedItems="{Binding SelectedPeople}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent"
+                 SelectionMode="Multiple"
                  ScrollViewer.VerticalScrollBarVisibility="Hidden"
                  Items="{Binding People}"
                  MaxWidth="800">
