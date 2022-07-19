@@ -11,7 +11,7 @@
         Title="Cake.Wallpaper.Manager.GUI"
         TransparencyLevelHint="Blur"
         Background="#C0000000"
-        ExtendClientAreaToDecorationsHint="True" Opened="TopLevel_OnOpened">
+        ExtendClientAreaToDecorationsHint="True">
 
     <Design.DataContext>
         <vm:MainWindowViewModel />
@@ -96,6 +96,8 @@
                                                 </ItemsControl>
                                                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
                                                     <Button Command="{Binding SelectFranchiseCommand}" Content="Add" />
+                                                    <Button Command="{Binding DeleteSelectedFranchiseCommand}"
+                                                            Content="Delete" />
                                                 </StackPanel>
                                             </DockPanel>
 
@@ -106,16 +108,20 @@
                                                   ExpandDirection="Down">
                                             <StackPanel HorizontalAlignment="Stretch">
                                                 <ListBox
+                                                    SelectionMode="Multiple"
                                                     HorizontalAlignment="Stretch"
-                                                    Items="{Binding SelectedImage.People}">
+                                                    Items="{Binding SelectedImage.People}"
+                                                    SelectedItems="{Binding SelectedImage.SelectedPeople}">
                                                 </ListBox>
 
                                                 <Button HorizontalContentAlignment="Center"
-                                                        HorizontalAlignment="Stretch">
+                                                        HorizontalAlignment="Stretch"
+                                                        Command="{Binding DeletePersonCommand}">
                                                     Remove
                                                 </Button>
                                                 <Button HorizontalAlignment="Stretch"
-                                                        HorizontalContentAlignment="Center">
+                                                        HorizontalContentAlignment="Center"
+                                                        Command="{Binding SelectPersonCommand}">
                                                     Add
                                                 </Button>
                                             </StackPanel>
@@ -128,7 +134,5 @@
                 </Grid>
             </TabItem>
         </TabControl>
-
     </DockPanel>
-
 </Window>
