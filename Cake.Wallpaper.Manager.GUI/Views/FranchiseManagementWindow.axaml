@@ -15,22 +15,21 @@
             <MenuItem Command="{Binding NewFranchise}" Header="New" />
             <MenuItem Header="Delete" />
         </Menu>
-        <UniformGrid>
-            <StackPanel Orientation="Vertical" DockPanel.Dock="Left">
-                <TextBox Text="{Binding SearchText}" Watermark="Search..."></TextBox>
-                <ListBox Items="{Binding Franchises}" SelectedItem="{Binding SelectedFranchise}"></ListBox>
-            </StackPanel>
-            <Grid Margin="10  0 0 0" ColumnDefinitions="auto *" RowDefinitions="auto auto auto auto"
-                  DockPanel.Dock="Right">
-                <Label Grid.Row="1" VerticalAlignment="Center">Name</Label>
-                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedFranchise.Name}"></TextBox>
-                <Label Grid.Row="2">Parent ID</Label>
-                <Label Grid.Column="1" Grid.Row="2" Content="{Binding SelectedFranchise.ParentID}" />
-                <Button Margin="0 10" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Center" Command="{Binding SetParent}">
-                    Set Parent
-                </Button>
-            </Grid>
-        </UniformGrid>
+        <Grid ColumnDefinitions="*" RowDefinitions="auto *" DockPanel.Dock="Left" VerticalAlignment="Stretch"
+              MinWidth="500">
+            <TextBox Text="{Binding SearchText}" Watermark="Search..."></TextBox>
+            <ListBox Grid.Row="1" Items="{Binding Franchises}" SelectedItem="{Binding SelectedFranchise}"></ListBox>
+        </Grid>
+        <Grid Margin="10  0 0 0" ColumnDefinitions="auto *" RowDefinitions="auto auto auto auto"
+              DockPanel.Dock="Right">
+            <Label Grid.Row="1" VerticalAlignment="Center">Name</Label>
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedFranchise.Name}"></TextBox>
+            <Label Grid.Row="2" Grid.Column="0">Parent ID</Label>
+            <Label Grid.Column="1" Grid.Row="2" Content="{Binding SelectedFranchise.ParentID}" />
+            <Button Margin="0 10" Grid.Row="3" Grid.ColumnSpan="2" Grid.Column="0" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center" Command="{Binding SetParent}">
+                Set Parent
+            </Button>
+        </Grid>
     </DockPanel>
 </Window>
