@@ -28,16 +28,15 @@ internal sealed class SqlLite : SqlLiteBase {
     public async Task InsertFranchiseListAsync(IEnumerable<Franchise> franchises) {
         await using (var tran = await this.CreateTransactionAsync()) {
             try {
-                SqliteCommand deleteCommand = new SqliteCommand() {
-                    CommandText = @"DELETE FROM Franchise",
-                };
-
-                await this.ExecuteNonQueryAsync(deleteCommand, tran);
-
                 foreach (var franchise in franchises) {
                     SqliteCommand cmd = new SqliteCommand() {
-                        CommandText = @"INSERT OR REPLACE INTO main.Franchise (Id, Name, ParentId)
-            values (@id, @name, @parent);"
+                        CommandText = @"INSERT INTO main.Franchise (Id, Name, ParentId)
+                                        values (@id, @name, @parent)
+                                        ON CONFLICT(id) DO UPDATE SET
+                                        Name = @name,
+                                        ParentId = @parent
+                                        WHERE id = @id;",
+                        Transaction = tran,
                     };
                     cmd.Parameters.Add("@id", SqliteType.Integer).Value = franchise.ID == 0 ? DBNull.Value : franchise.ID;
                     cmd.Parameters.Add("@name", SqliteType.Text).Value = franchise.Name;

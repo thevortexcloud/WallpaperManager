@@ -50,11 +50,16 @@ public class PersonViewModel : ViewModelBase {
     }
 
     public async Task DeletePersonAsync() {
-        if (this._person.ID == 0) {
-            return;
-        }
+        try {
+            //Prevent people from trying to delete stuff from the DB if this is a new perosn
+            if (this._person.ID == 0) {
+                return;
+            }
 
-        await this._wallpaperRepository.DeletePersonAsync(this._person.ID);
+            await this._wallpaperRepository.DeletePersonAsync(this._person.ID);
+        } catch (Exception ex) {
+            await Common.ShowExceptionMessageBoxAsync("There was a problem deleting the person", ex);
+        }
     }
 
     public async Task SavePersonAsync(IEnumerable<Franchise> franchises) {
