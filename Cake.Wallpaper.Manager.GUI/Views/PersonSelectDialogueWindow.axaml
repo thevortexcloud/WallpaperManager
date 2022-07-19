@@ -18,16 +18,19 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_Done" Command="{Binding DoneCommand}"></MenuItem>
         </Menu>
-        <StackPanel Orientation="Vertical" DockPanel.Dock="Bottom">
-            <TextBox HorizontalAlignment="Stretch" Watermark="Search..."></TextBox>
-            <ListBox SelectionMode="Multiple" VerticalAlignment="Stretch" SelectedItems="{Binding SelectedPeople}"
-                     Items="{Binding People}">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal"></WrapPanel>
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-            </ListBox>
-        </StackPanel>
+        <TextBox DockPanel.Dock="Top" HorizontalAlignment="Stretch" Watermark="Search..."></TextBox>
+        <ListBox DockPanel.Dock="Bottom" AutoScrollToSelectedItem="True" HorizontalAlignment="Left"
+                 VerticalAlignment="Stretch"
+                 SelectedItems="{Binding SelectedPeople}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent"
+                 ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                 Items="{Binding People}"
+                 MaxWidth="800">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal"></WrapPanel>
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
     </DockPanel>
 </Window>
