@@ -54,7 +54,7 @@ public class ImageItemViewModel : ViewModelBase {
 
     public int ID => this._wallpaper.ID;
 
-    public ObservableCollection<FranchiseSelectListItemViewModel>? Franchises { get; } = new ObservableCollection<FranchiseSelectListItemViewModel>();
+    public ObservableCollection<FranchiseSelectListItemViewModel> Franchises { get; } = new ObservableCollection<FranchiseSelectListItemViewModel>();
 
     public string? FileName => this._wallpaper.FileName;
 
@@ -103,6 +103,7 @@ public class ImageItemViewModel : ViewModelBase {
     }
 
     public ObservableCollection<PersonViewModel> People { get; } = new ObservableCollection<PersonViewModel>();
+    public ObservableCollection<PersonViewModel> SelectedPeople { get; } = new ObservableCollection<PersonViewModel>();
     #endregion
 
     #region Public constructor
@@ -250,7 +251,9 @@ public class ImageItemViewModel : ViewModelBase {
     public Core.Models.Wallpaper ConvertToWallpaper() {
         //Do a clone of the backing object
         return this._wallpaper with {
-            Franchises = this.Franchises.Select(o => o.Franchise).ToList()
+            //HACK: FOR NOW JUST COPY THE FRANCHISE AND PEOPLE LISTS
+            Franchises = this.Franchises.Select(o => o.Franchise).ToList(),
+            People = this.People.Select(o => o.Person).ToList()
         };
     }
     #endregion
