@@ -19,13 +19,11 @@ public class FranchiseSelectDialogueWindowViewModel : ViewModelBase {
     public ReactiveCommand<Unit, FranchiseSelectDialogueWindowViewModel> DoneCommand { get; }
 
     public FranchiseSelectDialogueWindowViewModel() {
+        //TODO: Remove locator pattern
         this._wallpaperRepository = Locator.Current.GetService<IWallpaperRepository>();
 
         this.LoadData();
-        this.DoneCommand = ReactiveCommand.CreateFromTask(() => {
-            //this.SelectedFranchiseSelectListItemViewModels.AddRange(this.SelectedFranchiseSelectListItemViewModels);
-            return Task.FromResult(this);
-        });
+        this.DoneCommand = ReactiveCommand.Create(() => this);
     }
 
     private void LoadData() {
