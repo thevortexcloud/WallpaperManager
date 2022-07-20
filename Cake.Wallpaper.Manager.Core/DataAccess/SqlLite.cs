@@ -361,9 +361,12 @@ WHERE PF.Person = @person",
 
         SqliteCommand cmd = new SqliteCommand() {
             CommandText = @"
-INSERT OR REPLACE
-INTO People (id, Name, PrimaryFranchise)
-VALUES (@id, @Name, @PrimaryFranchise);
+INSERT INTO People (id, Name, PrimaryFranchise)
+VALUES (@id, @Name, @PrimaryFranchise)
+ON CONFLICT(id) DO UPDATE SET
+Name = @Name,
+     PrimaryFranchise = @PrimaryFranchise
+WHERE id = @id;
 
 SELECT last_insert_rowid()",
             CommandType = CommandType.Text,
