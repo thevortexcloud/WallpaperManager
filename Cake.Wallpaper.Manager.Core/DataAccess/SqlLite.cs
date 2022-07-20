@@ -304,23 +304,31 @@ WHERE PF.Person = @person",
     /// <param name="personID">The person to delete</param>
     /// <returns></returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="personID"/> is 0</exception>
-    public Task DeletePersonAsync(int personID) {
+    public async Task DeletePersonAsync(int personID) {
         //Validate values
         if (personID == 0) {
             throw new ArgumentException("Person id can not be 0", nameof(personID));
         }
 
-        //Delete links for the person and the person themselves
-        SqliteCommand cmd = new SqliteCommand() {
-            CommandText = @"
-BEGIN TRANSACTION;
-            DELETE FROM People WHERE ID = @person;
+        await using (var tran = await this.CreateTransactionAsync()) {
+            //Delete links for the person and the person themselves
+            SqliteCommand cmd = new SqliteCommand() {
+                CommandText = @"
             DELETE FROM PeopleFranchises WHERE Person = @person;
-COMMIT;"
-        };
-        cmd.Parameters.Add("@person", SqliteType.Integer).Value = personID;
-
-        return this.ExecuteNonQueryAsync(cmd);
+            DELETE FROM People WHERE ID = @person;
+            DELETE FROM WallpaperPeople WHERE PersonID = @person",
+                Transaction = tran,
+                CommandType = CommandType.Text,
+            };
+            cmd.Parameters.Add("@person", SqliteType.Integer).Value = personID;
+            try {
+                await this.ExecuteNonQueryAsync(cmd, tran);
+                await tran.CommitAsync();
+            } catch {
+                await tran.RollbackAsync();
+                throw;
+            }
+        }
     }
 
     /// <summary>
