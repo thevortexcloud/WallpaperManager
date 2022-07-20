@@ -1,8 +1,6 @@
 using System.Data;
-using System.Diagnostics.CodeAnalysis;
 using Cake.Wallpaper.Manager.Core.Models;
 using Microsoft.Data.Sqlite;
-using SQLitePCL;
 
 namespace Cake.Wallpaper.Manager.Core.DataAccess;
 
@@ -135,8 +133,6 @@ WHERE PF.Person = @person"
                     nameOrdinal = rdr.GetOrdinal("name"),
                     levelOrdinal = rdr.GetOrdinal("level");
 
-                var franchises = new List<Franchise>();
-                var result = new HashSet<Franchise>();
                 while (await rdr.ReadAsync()) {
                     yield return new Franchise() {
                         Name = rdr.GetString(nameOrdinal),
@@ -206,6 +202,7 @@ WHERE WallpaperID = @wallpaper"
                                     Name = personrdr.GetString(personNameOrdinal),
                                     Franchises = await this.RetrieveFranchisesForPerson(personrdr.GetInt32(personIDOrdinal)).ToHashSetAsync(),
                                 };
+                                //TODO: Do a join on this since we can do it entirely in the DB
                                 int? primaryfranchiseid = await personrdr.IsDBNullAsync(primaryFranchiseOrdinal) ? null : personrdr.GetInt32(primaryFranchiseOrdinal);
                                 if (primaryfranchiseid.HasValue && primaryfranchiseid != 0) {
                                     person.PrimaryFranchise = person.Franchises.FirstOrDefault(o => o.ID == primaryfranchiseid);
@@ -288,6 +285,7 @@ WHERE PF.Person = @person",
                         }
 
                         //Find the primary franchise in the list and set it
+                        //TODO: Do this in the database instead
                         int? primaryfranchiseid = await rdr.IsDBNullAsync(primaryFranchiseOrdinal) ? null : rdr.GetInt32(primaryFranchiseOrdinal);
                         if (primaryfranchiseid != 0) {
                             person.PrimaryFranchise = person.Franchises.FirstOrDefault(o => o.ID == primaryfranchiseid);
@@ -301,7 +299,7 @@ WHERE PF.Person = @person",
     }
 
     /// <summary>
-    /// Deletes the given person from the database and some related data
+    /// Deletes the given person from the person related related tables
     /// </summary>
     /// <param name="personID">The person to delete</param>
     /// <returns></returns>
@@ -368,8 +366,8 @@ SELECT last_insert_rowid()",
         cmd.Parameters.Add("@Name", SqliteType.Text).Value = person.Name;
         cmd.Parameters.Add("@PrimaryFranchise", SqliteType.Integer).Value = person?.PrimaryFranchise?.ID == null ? DBNull.Value : person.PrimaryFranchise.ID;
 
-        //Person is an auto increment column, however we do not always want to retrieve the new value
-        //from the database if we are just doing a simple update
+        //Person is an auto increment column, however we will not get a new ID back if all we did was an update in the upsert
+        //As such assume if we have a non 0 ID we don't need to worry about the return value as this SHOULD be an already valid wallpaper ID
         long personid = 0;
         if (person!.ID == 0) {
             personid = await this.ExecuteScalerAsync<long?>(cmd, transaction) ?? 0;
@@ -378,7 +376,7 @@ SELECT last_insert_rowid()",
             await this.ExecuteNonQueryAsync(cmd, transaction);
         }
 
-        //Delete all franchise links as it's easier than trying to diff them, and since we are in a transaction we can easily roll back if we need to
+        //Delete all franchise links for the given person as it's easier than trying to diff them, and since we are in a transaction we can easily roll back if we need to
         cmd = new SqliteCommand() {
             CommandText = "DELETE FROM PeopleFranchises WHERE Person = @Person",
             CommandType = CommandType.Text,
@@ -459,8 +457,7 @@ values (@WallpaperID, @PersonID);",
         foreach (var franchise in wallpaper.Franchises) {
             cmd = new SqliteCommand() {
                 CommandText = @"
-
-INSERT OR REPLACE INTO WallpaperFranchise (WallpaperID, FranchiseID)
+INSERT INTO WallpaperFranchise (WallpaperID, FranchiseID)
 values (@WallpaperID, @FranchiseID);",
                 Transaction = transaction,
                 CommandType = CommandType.Text,
@@ -488,7 +485,8 @@ values (@WallpaperID, @FranchiseID);",
 
         //It's very important we do an UPSERT here or we will accidentally delete all the foreign key links
         SqliteCommand cmd = new SqliteCommand() {
-            CommandText = @"INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source)
+            CommandText = @"
+INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source)
 values (@id, @name, @dateadded, @filename, @author, @source)
  ON CONFLICT(id) DO UPDATE SET
 Name = @name,
