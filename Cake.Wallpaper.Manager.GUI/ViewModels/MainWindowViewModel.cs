@@ -334,13 +334,15 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 }
 
                 //Iterate through all the image data we have and dispose of it or we will run out of memory very quickly
-                Parallel.ForEach(CurrentPageData,
-                    (o) => {
+                Parallel.ForEach(Images,
+                    (o, p) => {
                         o.Image?.Dispose();
                         o.ThumbnailImage?.Dispose();
                         o.Image = null;
                         o.ThumbnailImage = null;
                     });
+                //Force a garbage collection since we are dealing with a lot of data and it seems to take a long time for it to get auto removed
+                GC.Collect();
 
                 CurrentPageData.Clear();
 
