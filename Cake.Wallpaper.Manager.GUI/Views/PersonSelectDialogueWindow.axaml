@@ -18,7 +18,7 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_Done" Command="{Binding DoneCommand}"></MenuItem>
         </Menu>
-        <TextBox DockPanel.Dock="Top" HorizontalAlignment="Stretch" Watermark="Search..."></TextBox>
+        <TextBox DockPanel.Dock="Top" HorizontalAlignment="Stretch" Text="{Binding PersonSearchTerm}" Watermark="Search..."></TextBox>
         <ListBox DockPanel.Dock="Bottom" AutoScrollToSelectedItem="True" HorizontalAlignment="Left"
                  VerticalAlignment="Stretch"
                  SelectedItems="{Binding SelectedPeople}"
