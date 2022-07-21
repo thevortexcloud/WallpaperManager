@@ -278,16 +278,20 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// </summary>
         /// <param name="term"></param>
         private async void DoSearch(string term) {
-            if (IsLoadingImages) {
-                this._cancellationTokenSource?.Cancel();
+            try {
+                if (IsLoadingImages) {
+                    this._cancellationTokenSource?.Cancel();
+                }
+
+                await this.HandleSearchTerm(term);
+
+                _cancellationTokenSource = new CancellationTokenSource();
+                var token = this._cancellationTokenSource.Token;
+                //Always go back to the first page if this method gets called as the user will have initiated a new search
+                await this.SetPageAsync(1, true, token);
+            } catch (Exception ex) {
+                await Common.ShowExceptionMessageBoxAsync("There was a problem running the search process", ex);
             }
-
-            await this.HandleSearchTerm(term);
-
-            _cancellationTokenSource = new CancellationTokenSource();
-            var token = this._cancellationTokenSource.Token;
-            //Always go back to the first page if this method gets called as the user will have initiated a new search
-            await this.SetPageAsync(1, true, token);
         }
 
         /// <summary>
@@ -295,28 +299,64 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// </summary>
         /// <param name="term">The search term provided by the user to search for an image by</param>
         private async Task HandleSearchTerm(string term) {
-            if (term != this.LastSearchTerm || string.IsNullOrWhiteSpace(term)) {
-                Images.Clear();
+            try {
+                if (term != this.LastSearchTerm || string.IsNullOrWhiteSpace(term)) {
+                    Images.Clear();
 
-                var wallpapers = string.IsNullOrWhiteSpace(term) ? this._wallpaperRepository.RetrieveWallpapersAsync() : this._wallpaperRepository.RetrieveWallpapersAsync(term);
+                    var wallpapers = string.IsNullOrWhiteSpace(term) ? this._wallpaperRepository.RetrieveWallpapersAsync() : this._wallpaperRepository.RetrieveWallpapersAsync(term);
 
-                await foreach (var wallpaper in wallpapers) {
-                    Images.Add(new ImageItemViewModel(wallpaper, this._wallpaperRepository));
+                    await foreach (var wallpaper in wallpapers) {
+                        Images.Add(new ImageItemViewModel(wallpaper, this._wallpaperRepository));
+                    }
+
+                    //this.CurrentPage = 1;
+                    this.LastSearchTerm = term;
                 }
-
-                //this.CurrentPage = 1;
-                this.LastSearchTerm = term;
+            } catch (Exception ex) {
+                await Common.ShowExceptionMessageBoxAsync("There was a problem processing the search request", ex);
             }
         }
 
         private async Task SetPageAsync(int pageNumber, bool allowRefresh, CancellationToken token) {
+            //TODO:THIS IS NOT GUARANTEED TO RELEASE THE SEMAPHORE. EG IF AN ERROR HAPPENS
             try {
                 //Need a semaphore to make sure we only do one of these at a time and to prevent all sorts of weird counting issues
                 await this._slim.WaitAsync();
+                //We can safely abort at this point if somebody asks
+                if (token.IsCancellationRequested) {
+                    this._slim.Release();
+                    return;
+                }
+
                 //Set a flag so other things know we are busy, since this is in a semaphore it SHOULD be thread safe
                 IsLoadingImages = true;
 
-                //Can't have a negative page or go over the page limis
+                //Make sure we have some page data to handle, and if not we need clear everything
+                if (!Images.Any()) {
+                    //Clear any data we have on the current page as we are trying to display a blank page
+                    Parallel.ForEach(this.CurrentPageData,
+                        (o, p) => {
+                            o.Image?.Dispose();
+                            o.ThumbnailImage?.Dispose();
+                            o.Image = null;
+                            o.ThumbnailImage = null;
+                        });
+                    //Finally clean up the list itself
+                    this.CurrentPageData.Clear();
+
+                    //Set this to 0 as we have no pages to display
+                    this.CurrentPage = 0;
+
+                    this._slim.Release();
+                    return;
+                }
+
+                if (token.IsCancellationRequested) {
+                    this._slim.Release();
+                    return;
+                }
+
+                //Can't have a negative page or go over the page limits
                 if (pageNumber > TotalPages || pageNumber < 1 || CurrentPage < 0) {
                     this._slim.Release();
                     return;
@@ -329,6 +369,11 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
 
                 //Don't change the page data if the page number has not changed unless something explicitly requests a page refresh 
                 if (CurrentPage == lastpage && !allowRefresh) {
+                    this._slim.Release();
+                    return;
+                }
+
+                if (token.IsCancellationRequested) {
                     this._slim.Release();
                     return;
                 }
