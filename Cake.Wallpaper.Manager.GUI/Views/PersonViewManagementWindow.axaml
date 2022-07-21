@@ -22,10 +22,10 @@
                       DockPanel.Dock="Right">
             </MenuItem>
         </Menu>
-        <UniformGrid VerticalAlignment="Stretch" Columns="2">
-            <StackPanel Orientation="Vertical" DockPanel.Dock="Left">
+        <UniformGrid DockPanel.Dock="Top" VerticalAlignment="Stretch" Columns="2">
+            <Grid RowDefinitions="Auto *">
                 <TextBox Text="{Binding PersonSearchTerm}" Watermark="Search..."></TextBox>
-                <ListBox Name="Box" VirtualizationMode="Simple" VerticalAlignment="Stretch"
+                <ListBox Grid.Row="1" Name="Box" VirtualizationMode="Simple" VerticalAlignment="Stretch"
                          SelectedItem="{Binding SelectedPerson}" Items="{Binding People}">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -33,11 +33,12 @@
                         </ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
                 </ListBox>
-            </StackPanel>
+            </Grid>
             <Grid DockPanel.Dock="Right" ColumnDefinitions="auto *" RowDefinitions="auto auto *">
                 <Label Grid.Row="0">Name</Label>
-                <TextBox Text="{Binding SelectedPerson.Name}" Grid.Column="1"></TextBox>
-                <TextBox Watermark="Search..." Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding FranchiseSearchTerm}" />
+                <TextBox Text="{Binding SelectedPerson.Name}" Grid.Row="0" Grid.Column="1"></TextBox>
+                <TextBox Watermark="Search..." Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0"
+                         Text="{Binding FranchiseSearchTerm}" />
                 <ItemsControl Grid.ColumnSpan="2" Grid.Row="2" Grid.Column="0"
                               Items="{Binding Franchises}">
                 </ItemsControl>
