@@ -18,13 +18,15 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_Save" Command="{Binding SavePerson}"></MenuItem>
             <MenuItem Header="_New" Command="{Binding NewPerson}" />
-            <MenuItem Header="_Delete" Command="{Binding DeletePerson}" HorizontalAlignment="Right" DockPanel.Dock="Right"></MenuItem>
+            <MenuItem Header="_Delete" Command="{Binding DeletePerson}" HorizontalAlignment="Right"
+                      DockPanel.Dock="Right">
+            </MenuItem>
         </Menu>
         <UniformGrid VerticalAlignment="Stretch" Columns="2">
-
             <StackPanel Orientation="Vertical" DockPanel.Dock="Left">
-                <TextBox Watermark="Search..."></TextBox>
-                <ListBox VerticalAlignment="Stretch" SelectedItem="{Binding SelectedPerson}" Items="{Binding People}">
+                <TextBox Text="{Binding PersonSearchTerm}" Watermark="Search..."></TextBox>
+                <ListBox Name="Box" VirtualizationMode="Simple" VerticalAlignment="Stretch"
+                         SelectedItem="{Binding SelectedPerson}" Items="{Binding People}">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal"></WrapPanel>

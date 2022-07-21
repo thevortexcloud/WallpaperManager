@@ -1,18 +1,23 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.ReactiveUI;
+using Cake.Wallpaper.Manager.GUI.ViewModels;
+using ReactiveUI;
 
-namespace Cake.Wallpaper.Manager.GUI.Views; 
+namespace Cake.Wallpaper.Manager.GUI.Views {
+    public partial class PersonManagamentWindow : ReactiveWindow<PersonManagementViewModel> {
+        public PersonManagamentWindow() {
+            InitializeComponent();
+            #if DEBUG
+            this.AttachDevTools();
+            #endif
 
-public partial class PersonManagamentWindow : Window {
-    public PersonManagamentWindow() {
-        InitializeComponent();
-        #if DEBUG
-        this.AttachDevTools();
-        #endif
-    }
+            this.WhenActivated(async o => { o(this.ViewModel!.RefreshDataAsync()); });
+        }
 
-    private void InitializeComponent() {
-        AvaloniaXamlLoader.Load(this);
+        private void InitializeComponent() {
+            AvaloniaXamlLoader.Load(this);
+        }
     }
 }

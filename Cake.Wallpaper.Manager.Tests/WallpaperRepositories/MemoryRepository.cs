@@ -25,6 +25,10 @@ public class MemoryRepository : IWallpaperRepository {
         return this.People.ToAsyncEnumerable();
     }
 
+    public IAsyncEnumerable<Person> RetrievePeopleAsync(string searchTerm) {
+        return this.People.Where(o => o.Name == searchTerm).ToAsyncEnumerable();
+    }
+
     public Task DeletePersonAsync(int personID) {
         this.People.Remove(this.People.First(o => o.ID == personID));
         return Task.CompletedTask;

@@ -12,11 +12,21 @@ public interface IWallpaperRepository {
     /// <summary>
     /// Retrieves a filtered list of wallpapers
     /// </summary>
-    /// <param name="searchTerm"></param>
-    /// <returns></returns>
+    /// <param name="searchTerm">The search term to find people with</param>
+    /// <returns>A filtered list of people</returns>
     public IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync(string searchTerm);
 
-    public IAsyncEnumerable<Models.Person> RetrievePeopleAsync();
+    /// <summary>
+    /// Retrieves a list of people
+    /// </summary>
+    /// <returns>A list of all people</returns>
+    public IAsyncEnumerable<Models.Person>? RetrievePeopleAsync();
+
+    /// <summary>
+    /// Retrieves a filtered list of people based on the given search term
+    /// </summary>
+    /// <returns>A filtered list of all people that match the given search term</returns>
+    public IAsyncEnumerable<Models.Person>? RetrievePeopleAsync(string searchTerm);
 
     /// <summary>
     /// Deletes a person and all related records
@@ -25,8 +35,8 @@ public interface IWallpaperRepository {
     /// <returns></returns>
     public Task DeletePersonAsync(int personID);
 
-    public IAsyncEnumerable<Franchise> RetrieveFranchises();
-    public IAsyncEnumerable<Franchise> RetrieveFranchises(string searchTerm);
+    public IAsyncEnumerable<Franchise>? RetrieveFranchises();
+    public IAsyncEnumerable<Franchise>? RetrieveFranchises(string searchTerm);
     public IAsyncEnumerable<Franchise> RetrieveFranchisesForPerson(int personID);
     public Task SaveWallpaperInfoAsync(Models.Wallpaper wallpaper);
     public Task SavePersonInfoAsync(Models.Person person);

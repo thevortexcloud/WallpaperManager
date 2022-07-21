@@ -240,12 +240,88 @@ WHERE WallpaperID = @wallpaper"
     /// Retrieves a list of all people
     /// </summary>
     /// <returns>A list of all people that exist in the system</returns>
-    public async IAsyncEnumerable<Person> RetrievePeople() {
+    public IAsyncEnumerable<Person> RetrievePeople() {
         SqliteCommand cmd = new SqliteCommand() {
             CommandText = @"SELECT Id, Name, PrimaryFranchise
 FROM People;"
         };
 
+        return this.ParseRetrievePersonCommand(cmd);
+    }
+
+    /// <summary>
+    /// Retrieves a filtered list of people from the database
+    /// </summary>
+    /// <param name="searchTerm">The search term to filter the results by</param>
+    /// <returns>A list of all people that exist in the system</returns>
+    public IAsyncEnumerable<Person> RetrievePeople(string searchTerm) {
+        SqliteCommand cmd = new SqliteCommand() {
+            CommandText = @"SELECT Id, Name, PrimaryFranchise
+FROM People
+WHERE Name LIKE '%' || @term || '%'"
+        };
+        cmd.Parameters.Add("@term", SqliteType.Text).Value = searchTerm;
+
+        return this.ParseRetrievePersonCommand(cmd);
+    }
+
+
+    /// <summary>
+    /// Deletes the given person from the person related related tables
+    /// </summary>
+    /// <param name="personID">The person to delete</param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="personID"/> is 0</exception>
+    public async Task DeletePersonAsync(int personID) {
+        //Validate values
+        if (personID == 0) {
+            throw new ArgumentException("Person id can not be 0", nameof(personID));
+        }
+
+        await using (var tran = await this.CreateTransactionAsync()) {
+            //Delete links for the person and the person themselves
+            SqliteCommand cmd = new SqliteCommand() {
+                CommandText = @"
+            DELETE FROM PeopleFranchises WHERE Person = @person;
+            DELETE FROM People WHERE ID = @person;
+            DELETE FROM WallpaperPeople WHERE PersonID = @person",
+                Transaction = tran,
+                CommandType = CommandType.Text,
+            };
+            cmd.Parameters.Add("@person", SqliteType.Integer).Value = personID;
+            try {
+                await this.ExecuteNonQueryAsync(cmd, tran);
+                await tran.CommitAsync();
+            } catch {
+                await tran.RollbackAsync();
+                throw;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Inserts a person into the database, or updates them if they already exist
+    /// </summary>
+    /// <param name="person">The person to insert</param>
+    /// <exception cref="ArgumentNullException">Thrown when <param name="person"> is null</param></exception>
+    public async Task InsertPersonAsync(Person person) {
+        using (var tran = await this.CreateTransactionAsync()) {
+            try {
+                await this.InsertPerson(person, tran);
+                await tran.CommitAsync();
+            } catch {
+                await tran.RollbackAsync();
+                throw;
+            }
+        }
+    }
+
+    /// <summary>
+    ///  Attempts to parse the given command and load instantiate a person object with all related data
+    /// </summary>
+    /// <param name="cmd"></param>
+    /// <returns></returns>
+    private async IAsyncEnumerable<Person> ParseRetrievePersonCommand(SqliteCommand cmd) {
         using (var rdr = await this.ExecuteDataReaderAsync(cmd)) {
             if (rdr.HasRows) {
                 int idOrdinal = rdr.GetOrdinal("Id"),
@@ -299,55 +375,40 @@ WHERE PF.Person = @person",
     }
 
     /// <summary>
-    /// Deletes the given person from the person related related tables
+    /// Attempts to insert or update the given wallpaper transactionally with all related linked data
     /// </summary>
-    /// <param name="personID">The person to delete</param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="personID"/> is 0</exception>
-    public async Task DeletePersonAsync(int personID) {
-        //Validate values
-        if (personID == 0) {
-            throw new ArgumentException("Person id can not be 0", nameof(personID));
-        }
-
-        await using (var tran = await this.CreateTransactionAsync()) {
-            //Delete links for the person and the person themselves
-            SqliteCommand cmd = new SqliteCommand() {
-                CommandText = @"
-            DELETE FROM PeopleFranchises WHERE Person = @person;
-            DELETE FROM People WHERE ID = @person;
-            DELETE FROM WallpaperPeople WHERE PersonID = @person",
-                Transaction = tran,
-                CommandType = CommandType.Text,
-            };
-            cmd.Parameters.Add("@person", SqliteType.Integer).Value = personID;
-            try {
-                await this.ExecuteNonQueryAsync(cmd, tran);
-                await tran.CommitAsync();
-            } catch {
-                await tran.RollbackAsync();
-                throw;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Inserts a person into the database, or updates them if they already exist
-    /// </summary>
-    /// <param name="person">The person to insert</param>
-    /// <exception cref="ArgumentNullException">Thrown when <param name="person"> is null</param></exception>
-    public async Task InsertPersonAsync(Person person) {
+    /// <param name="wallpaper">The wallpaper to attempt to insert</param>
+    public async Task SaveWallpaperAsync(Models.Wallpaper wallpaper) {
+        //Create a transaction since we are going to be doing a lot of things that could fail
         using (var tran = await this.CreateTransactionAsync()) {
             try {
-                await this.InsertPerson(person, tran);
+                //Update/insert the wallpaper header data
+                var createdID = await this.CreateOrInsertWallpaperHeaderAsync(wallpaper, tran);
+                //If we have a different id (id of 0 is for new wallpapers) we need to update the references we have since it's used for all the links we are about to do
+                //Luckily records make this very simple for us
+                if (createdID != wallpaper.ID) {
+                    wallpaper = wallpaper with {
+                        ID = createdID
+                    };
+                }
+
+                //Create the links in the people table
+                await this.CreateOrUpdateWallpaperPeopleLinkAsync(wallpaper, tran);
+                //Create the links in the franchise tables
+                await this.CreateOrUpdateWallpaperFranchisesLinkAsync(wallpaper, tran);
+
+                //If everything worked, commit the transaction
                 await tran.CommitAsync();
             } catch {
+                //If we get any errors at all, abort and rethrow
                 await tran.RollbackAsync();
                 throw;
             }
         }
     }
+    #endregion
 
+    #region Private methods
     /// <summary>
     /// Inserts a person into the database, or updates them if they already exist
     /// </summary>
@@ -521,39 +582,6 @@ WHERE id = @id;
         checked {
             var result = (int) await this.ExecuteScalerAsync<long>(cmd, transaction);
             return wallpaper.ID == 0 ? result : wallpaper.ID;
-        }
-    }
-
-    /// <summary>
-    /// Attempts to insert or update the given wallpaper transactionally with all related linked data
-    /// </summary>
-    /// <param name="wallpaper">The wallpaper to attempt to insert</param>
-    public async Task SaveWallpaperAsync(Models.Wallpaper wallpaper) {
-        //Create a transaction since we are going to be doing a lot of things that could fail
-        using (var tran = await this.CreateTransactionAsync()) {
-            try {
-                //Update/insert the wallpaper header data
-                var createdID = await this.CreateOrInsertWallpaperHeaderAsync(wallpaper, tran);
-                //If we have a different id (id of 0 is for new wallpapers) we need to update the references we have since it's used for all the links we are about to do
-                //Luckily records make this very simple for us
-                if (createdID != wallpaper.ID) {
-                    wallpaper = wallpaper with {
-                        ID = createdID
-                    };
-                }
-
-                //Create the links in the people table
-                await this.CreateOrUpdateWallpaperPeopleLinkAsync(wallpaper, tran);
-                //Create the links in the franchise tables
-                await this.CreateOrUpdateWallpaperFranchisesLinkAsync(wallpaper, tran);
-
-                //If everything worked, commit the transaction
-                await tran.CommitAsync();
-            } catch {
-                //If we get any errors at all, abort and rethrow
-                await tran.RollbackAsync();
-                throw;
-            }
         }
     }
     #endregion

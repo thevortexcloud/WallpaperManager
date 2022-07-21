@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -51,7 +52,7 @@ public class PersonViewModel : ViewModelBase {
 
     public async Task DeletePersonAsync() {
         try {
-            //Prevent people from trying to delete stuff from the DB if this is a new perosn
+            //Prevent people from trying to delete stuff from the DB if this is a new person
             if (this._person.ID == 0) {
                 return;
             }

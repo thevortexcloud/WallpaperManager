@@ -62,6 +62,14 @@ public class DiskRepository : Interfaces.IWallpaperRepository {
         }
     }
 
+    public async IAsyncEnumerable<Person> RetrievePeopleAsync(string searchTerm) {
+        await using (DataAccess.SqlLite sqlLite = new SqlLite(ConnectionString)) {
+            foreach (var person in await sqlLite.RetrievePeople(searchTerm).ToListAsync()) {
+                yield return person;
+            }
+        }
+    }
+
     public async Task DeletePersonAsync(int personID) {
         using (SqlLite sqlLite = new SqlLite(ConnectionString)) {
             await sqlLite.DeletePersonAsync(personID);

@@ -20,7 +20,8 @@ public class PersonManagementViewModel : ViewModelBase {
 
     #region Private variables
     private PersonViewModel? _selectedPerson;
-    private string _franchiseSearchTerm;
+    private string? _franchiseSearchTerm;
+    private string? _personSearchTerm;
     #endregion
 
     #region Public properties
@@ -37,16 +38,20 @@ public class PersonManagementViewModel : ViewModelBase {
     public ReactiveCommand<Unit, Unit> NewPerson { get; }
     public ReactiveCommand<Unit, Unit> DeletePerson { get; }
 
-    public string FranchiseSearchTerm {
+    public string? FranchiseSearchTerm {
         get => this._franchiseSearchTerm;
         set => this.RaiseAndSetIfChanged(ref this._franchiseSearchTerm, value);
+    }
+
+    public string? PersonSearchTerm {
+        get => this._personSearchTerm;
+        set => this.RaiseAndSetIfChanged(ref this._personSearchTerm, value);
     }
     #endregion
 
     #region Public constructor
-    public PersonManagementViewModel() {
-        //TODO: DON'T USE LOCATOR PATTERN
-        this._wallpaperRepository = Locator.Current.GetService<IWallpaperRepository>();
+    public PersonManagementViewModel(IWallpaperRepository wallpaperRepository) {
+        this._wallpaperRepository = wallpaperRepository;
 
         SavePerson = ReactiveCommand.CreateFromTask(SavePersonAsync);
         NewPerson = ReactiveCommand.Create(CreateNewPerson);
@@ -54,13 +59,17 @@ public class PersonManagementViewModel : ViewModelBase {
 
         this.WhenAnyValue(o => o.FranchiseSearchTerm)
             .Throttle(TimeSpan.FromMilliseconds(500))
+            .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(HandleFranchiseSearchAsync);
+
+        this.WhenAnyValue(o => o.PersonSearchTerm)
+            .Throttle(TimeSpan.FromMilliseconds(500))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(HandlePersonSearchAsync);
+
 
         this.WhenAnyValue(o => o.SelectedPerson)
             .Subscribe(OnSelectedPersonChange);
-
-        //TODO:Move this into an activator
-        this.LoadDataAsync().ConfigureAwait(false).GetAwaiter();
     }
     #endregion
 
@@ -78,8 +87,8 @@ public class PersonManagementViewModel : ViewModelBase {
             return;
         }
 
-        await this.SelectedPerson?.DeletePersonAsync();
-        await this.LoadDataAsync();
+        await (this.SelectedPerson?.DeletePersonAsync() ?? Task.CompletedTask);
+        await this.RefreshDataAsync();
     }
 
     /// <summary>
@@ -105,14 +114,25 @@ public class PersonManagementViewModel : ViewModelBase {
         }
     }
 
-    private async void HandleFranchiseSearchAsync(string term) {
-        //TODO: Finish implementing this
-        if (SelectedPerson is null) {
+    private async void HandleFranchiseSearchAsync(string? term) {
+        //If this is actually null we don't want to do anything, however empty string is perfectly valid
+        if (term is null) {
             return;
         }
 
-        if (term is null) {
-            return;
+        await this.RefreshDataAsync();
+    }
+
+    private async void HandlePersonSearchAsync(string? term) {
+        try {
+            //If this is actually null we don't want to do anything, however empty string is perfectly valid
+            if (term is null) {
+                return;
+            }
+
+            await this.RefreshDataAsync();
+        } catch (Exception ex) {
+            await Common.ShowExceptionMessageBoxAsync("There was a problem filtering the person list", ex);
         }
     }
 
@@ -129,34 +149,44 @@ public class PersonManagementViewModel : ViewModelBase {
     /// <summary>
     /// Reloads all the data in the current instance
     /// </summary>
-    private async Task LoadDataAsync() {
+    public async Task RefreshDataAsync() {
+        //TODO: We can optimise this by caching the old search terms and checking if anything actually changed
         //Clear out the old stuff we no longer need
         People.Clear();
         Franchises.Clear();
 
-        //Fetch the people and then add them to the people list
-        await foreach (var person in this._wallpaperRepository.RetrievePeopleAsync()) {
-            var personviewmodel = new PersonViewModel(person, this._wallpaperRepository);
-            People.Add(personviewmodel);
+        //Fetch the people based on the current search term and then add them to the people list
+        var peopleViewModels = this.PersonSearchTerm is null ? this._wallpaperRepository.RetrievePeopleAsync() : this._wallpaperRepository.RetrievePeopleAsync(this.PersonSearchTerm);
+        if (peopleViewModels is not null) {
+            await foreach (var person in peopleViewModels) {
+                var personviewmodel = new PersonViewModel(person, this._wallpaperRepository);
+                People.Add(personviewmodel);
+            }
         }
 
         //Fetch the franchises and add them to the franchise list
-        var franchises = this._wallpaperRepository.RetrieveFranchises();
+        var franchises = this.FranchiseSearchTerm is null ? this._wallpaperRepository.RetrieveFranchises() : this._wallpaperRepository.RetrieveFranchises(this.FranchiseSearchTerm);
+        //If we have nothing to load, don't do anything
+        if (franchises is null) {
+            return;
+        }
+
         await foreach (var franchise in franchises) {
             this.Franchises.Add(new FranchiseSelectListItemViewModel(franchise));
         }
     }
-    #endregion
 
-    #region Public methods
-    public async Task SavePersonAsync() {
+    /// <summary>
+    /// Attempts to saves the currently selected person to the wallpaper repository
+    /// </summary>
+    private async Task SavePersonAsync() {
         try {
             if (this.SelectedPerson is null) {
                 return;
             }
 
             await SelectedPerson.SavePersonAsync(this.Franchises.Where(o => o.Selected).Select(o => o.Franchise));
-            await this.LoadDataAsync();
+            await this.RefreshDataAsync();
         } catch (Exception ex) {
             await Common.ShowExceptionMessageBoxAsync("There was a problem saving a person", ex);
         }
