@@ -39,9 +39,9 @@
                 <TextBox Text="{Binding SelectedPerson.Name}" Grid.Row="0" Grid.Column="1"></TextBox>
                 <TextBox Watermark="Search..." Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="0"
                          Text="{Binding FranchiseSearchTerm}" />
-                <ItemsControl Grid.ColumnSpan="2" Grid.Row="2" Grid.Column="0"
+                <ListBox Grid.ColumnSpan="2" Grid.Row="2" Grid.Column="0"
                               Items="{Binding Franchises}">
-                </ItemsControl>
+                </ListBox>
 
             </Grid>
         </UniformGrid>
