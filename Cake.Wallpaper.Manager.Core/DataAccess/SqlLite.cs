@@ -427,9 +427,8 @@ VALUES (@id, @Name, @PrimaryFranchise)
 ON CONFLICT(id) DO UPDATE SET
 Name = @Name,
      PrimaryFranchise = @PrimaryFranchise
-WHERE id = @id;
-
-SELECT last_insert_rowid()",
+WHERE id = @id
+RETURNING id;",
             CommandType = CommandType.Text,
             Transaction = transaction,
         };
@@ -438,14 +437,13 @@ SELECT last_insert_rowid()",
         cmd.Parameters.Add("@Name", SqliteType.Text).Value = person.Name;
         cmd.Parameters.Add("@PrimaryFranchise", SqliteType.Integer).Value = person?.PrimaryFranchise?.ID == null ? DBNull.Value : person.PrimaryFranchise.ID;
 
-        //Person is an auto increment column, however we will not get a new ID back if all we did was an update in the upsert
-        //As such assume if we have a non 0 ID we don't need to worry about the return value as this SHOULD be an already valid wallpaper ID
+        //Person is an auto increment column, as such we should use the ID the database gives us
         long personid = 0;
-        if (person!.ID == 0) {
-            personid = await this.ExecuteScalerAsync<long?>(cmd, transaction) ?? 0;
-        } else {
-            personid = person.ID;
-            await this.ExecuteNonQueryAsync(cmd, transaction);
+        personid = await this.ExecuteScalerAsync<long>(cmd, transaction);
+
+        //This should never happen, but it's worth doing as a sanity check in the event the SQL gets broken for some reason
+        if (person!.ID != 0 && personid != person.ID) {
+            throw new ApplicationException("The inserted or updated person did not return a consistent ID");
         }
 
         //Delete all franchise links for the given person as it's easier than trying to diff them, and since we are in a transaction we can easily roll back if we need to
@@ -460,8 +458,7 @@ SELECT last_insert_rowid()",
         foreach (var franchise in person.Franchises) {
             cmd = new SqliteCommand() {
                 CommandText = @"
-INSERT OR
-REPLACE INTO PeopleFranchises (Franchise, Person)
+INSERT INTO PeopleFranchises (Franchise, Person)
 VALUES (@Franchise, @Person);",
             };
 
@@ -478,6 +475,7 @@ VALUES (@Franchise, @Person);",
     /// <param name="wallpaper">The wallpaper containing the franchises it should link to</param>
     /// <param name="transaction">The transaction to use for the operation</param>
     private async Task CreateOrUpdateWallpaperPeopleLinkAsync(Models.Wallpaper wallpaper, SqliteTransaction transaction) {
+        //Delete all existing links since it's far easier than trying to work out what actually changed and in this instance nothing else should change
         SqliteCommand cmd = new SqliteCommand() {
             CommandText = @"DELETE FROM WallpaperPeople WHERE WallpaperID = @WallpaperID",
             Transaction = transaction,
@@ -566,8 +564,9 @@ Name = @name,
      FileName = @filename,
      Author = @author,
      Source = @source
-WHERE id = @id;
-    SELECT last_insert_rowid();",
+WHERE id = @id
+RETURNING id;
+    --SELECT last_insert_rowid();",
             Transaction = transaction,
             CommandType = CommandType.Text,
         };
@@ -581,7 +580,12 @@ WHERE id = @id;
         //Unlikely this cast will cause an overflow, but it's probably something should know about just in case
         checked {
             var result = (int) await this.ExecuteScalerAsync<long>(cmd, transaction);
-            return wallpaper.ID == 0 ? result : wallpaper.ID;
+            //This really should never happen, but it does not hurt to be safe here as a basic sanity check
+            if (wallpaper.ID != 0 && result != wallpaper.ID) {
+                throw new ApplicationException("The inserted/updated wallpaper ID did NOT match what was attempted to be inserted or updated");
+            }
+
+            return result;
         }
     }
     #endregion
