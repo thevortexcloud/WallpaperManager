@@ -5,6 +5,8 @@
         <Nullable>enable</Nullable>
 
         <IsPackable>false</IsPackable>
+
+        <RootNamespace>Cake.Wallpaper.Manager.Tests.Core</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
