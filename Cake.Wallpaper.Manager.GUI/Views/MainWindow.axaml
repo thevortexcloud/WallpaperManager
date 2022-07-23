@@ -24,7 +24,7 @@
             <MenuItem Header="Refresh" Command="{Binding Refresh}" />
             <MenuItem HorizontalAlignment="Right" Header="Person Management"
                       Click="MenuItem_OpenPersonManagement_OnClick" />
-            <MenuItem Header="Franchise Management" Click="MenuItem_OnClick" />
+            <MenuItem Header="Franchise Management" Click="MenuItem_OpenFranchiseManagement_OnClick" />
         </Menu>
         <TabControl DockPanel.Dock="Bottom" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch">
             <TabItem Header="Image Tagging">

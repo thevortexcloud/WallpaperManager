@@ -112,7 +112,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             set => this.RaiseAndSetIfChanged(ref this._searchText, value);
         }
 
-        public Interaction<Unit, FranchiseSelectDialogueWindowViewModel?> ShowFranchiseSelectDialog { get; } = new Interaction<Unit, FranchiseSelectDialogueWindowViewModel>();
+        public Interaction<Unit, FranchiseSelectWindowViewModel?> ShowFranchiseSelectDialog { get; } = new Interaction<Unit, FranchiseSelectWindowViewModel>();
         public Interaction<Unit, PersonSelectWindowViewModel?> ShowPersonSelectDialog { get; } = new Interaction<Unit, PersonSelectWindowViewModel>();
         public ReactiveCommand<Unit, IEnumerable<PersonViewModel>?> SelectPersonCommand { get; }
         public ReactiveCommand<Unit, Unit> DeletePersonCommand { get; }

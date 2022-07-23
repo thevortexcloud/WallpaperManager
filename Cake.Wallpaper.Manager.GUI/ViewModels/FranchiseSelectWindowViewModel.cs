@@ -10,17 +10,16 @@ using Splat;
 
 namespace Cake.Wallpaper.Manager.GUI.ViewModels;
 
-public class FranchiseSelectDialogueWindowViewModel : ViewModelBase {
+public class FranchiseSelectWindowViewModel : ViewModelBase {
     private readonly IWallpaperRepository _wallpaperRepository;
 
     public ObservableCollection<FranchiseSelectListItemViewModel> DbFranchises { get; set; } = new ObservableCollection<FranchiseSelectListItemViewModel>();
 
     //public List<FranchiseSelectListItemViewModel> SelectedFranchiseSelectListItemViewModels => this.FindSelectedFranchises();
-    public ReactiveCommand<Unit, FranchiseSelectDialogueWindowViewModel> DoneCommand { get; }
+    public ReactiveCommand<Unit, FranchiseSelectWindowViewModel> DoneCommand { get; }
 
-    public FranchiseSelectDialogueWindowViewModel() {
-        //TODO: Remove locator pattern
-        this._wallpaperRepository = Locator.Current.GetService<IWallpaperRepository>();
+    public FranchiseSelectWindowViewModel(IWallpaperRepository wallpaperRepository) {
+        this._wallpaperRepository = wallpaperRepository;
 
         this.LoadData();
         this.DoneCommand = ReactiveCommand.Create(() => this);

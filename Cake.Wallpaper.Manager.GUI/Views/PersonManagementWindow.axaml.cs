@@ -6,8 +6,8 @@ using Cake.Wallpaper.Manager.GUI.ViewModels;
 using ReactiveUI;
 
 namespace Cake.Wallpaper.Manager.GUI.Views {
-    public partial class PersonManagamentWindow : ReactiveWindow<PersonManagementViewModel> {
-        public PersonManagamentWindow() {
+    public partial class PersonManagementWindow : ReactiveWindow<PersonManagementViewModel> {
+        public PersonManagementWindow() {
             InitializeComponent();
             #if DEBUG
             this.AttachDevTools();

@@ -2,6 +2,8 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.ReactiveUI;
+using Microsoft.Extensions.DependencyInjection;
+using Splat.Microsoft.Extensions.DependencyInjection;
 
 namespace Cake.Wallpaper.Manager.GUI {
     class Program {
@@ -13,10 +15,11 @@ namespace Cake.Wallpaper.Manager.GUI {
             .StartWithClassicDesktopLifetime(args);
 
         // Avalonia configuration, don't remove; also used by visual designer.
-        public static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>()
+        public static AppBuilder BuildAvaloniaApp() {
+            return AppBuilder.Configure<App>()
                 .UsePlatformDetect()
-                .LogToTrace()
-                .UseReactiveUI();
+                .LogToTrace();
+            //.UseReactiveUI();
+        }
     }
 }

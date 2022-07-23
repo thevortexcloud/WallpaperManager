@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -9,6 +11,7 @@ using Cake.Wallpaper.Manager.Core.Interfaces;
 using Cake.Wallpaper.Manager.Core.WallpaperRepositories;
 using Cake.Wallpaper.Manager.GUI.ViewModels;
 using ReactiveUI;
+using Splat;
 
 namespace Cake.Wallpaper.Manager.GUI.Views {
     public partial class MainWindow : ReactiveWindow<MainWindowViewModel> {
@@ -19,33 +22,35 @@ namespace Cake.Wallpaper.Manager.GUI.Views {
         }
 
         private async Task DoShowPersonDialogueAsync(InteractionContext<Unit, PersonSelectWindowViewModel?> interactionContext) {
-            //TODO: Figure out how to resolve this without using a locator
-            //   var window = Locator.Current.GetService<PersonSelectDialogueWindow>();
-            var window = new PersonSelectDialogueWindow() {
-                DataContext = new PersonSelectWindowViewModel(Locator.Current.GetService<IWallpaperRepository>())
-            };
-            var result = await window.ShowDialog<PersonSelectWindowViewModel>(this);
-            interactionContext.SetOutput(result);
+            try {
+                interactionContext.SetOutput(await WindowHelper.ShowDialogueAsync<PersonSelectDialogueWindow, PersonSelectWindowViewModel>(this));
+            } catch (Exception ex) {
+                await this.ShowExceptionMessageBoxAsync("There was a problem showing the dialogue", ex);
+            }
         }
 
-        private async Task DoShowFranchiseDialogAsync(InteractionContext<Unit, FranchiseSelectDialogueWindowViewModel?> interaction) {
-            var dialog = new FranchiseSelectDialogueWindow();
-            dialog.DataContext = new FranchiseSelectDialogueWindowViewModel();
-
-            var result = await dialog.ShowDialog<FranchiseSelectDialogueWindowViewModel?>(this);
-            interaction.SetOutput(result);
+        private async Task DoShowFranchiseDialogAsync(InteractionContext<Unit, FranchiseSelectWindowViewModel?> interaction) {
+            try {
+                interaction.SetOutput(await WindowHelper.ShowDialogueAsync<FranchiseSelectDialogueWindow, FranchiseSelectWindowViewModel>(this));
+            } catch (Exception ex) {
+                await this.ShowExceptionMessageBoxAsync("There was a problem showing the dialogue", ex);
+            }
         }
 
-        private void MenuItem_OpenPersonManagement_OnClick(object? sender, RoutedEventArgs e) {
-            new PersonManagamentWindow() {
-                DataContext = new PersonManagementViewModel()
-            }.Show(this);
+        private async void MenuItem_OpenPersonManagement_OnClick(object? sender, RoutedEventArgs e) {
+            try {
+                WindowHelper.ShowWindow<PersonManagementWindow>(this);
+            } catch (Exception ex) {
+                await this.ShowExceptionMessageBoxAsync("There was a problem showing the window", ex);
+            }
         }
 
-        private void MenuItem_OnClick(object? sender, RoutedEventArgs e) {
-            new FranchiseManagementWindow() {
-                DataContext = new FranchiseManagementViewModel()
-            }.Show(this);
+        private async void MenuItem_OpenFranchiseManagement_OnClick(object? sender, RoutedEventArgs e) {
+            try {
+                WindowHelper.ShowWindow<FranchiseManagementWindow>(this);
+            } catch (Exception ex) {
+                await this.ShowExceptionMessageBoxAsync("There was a problem showing the window", ex);
+            }
         }
     }
 }

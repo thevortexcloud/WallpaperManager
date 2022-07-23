@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:Cake.Wallpaper.Manager.GUI.ViewModels"
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="550"
-        x:Class="Cake.Wallpaper.Manager.GUI.Views.PersonManagamentWindow"
+        x:Class="Cake.Wallpaper.Manager.GUI.Views.PersonManagementWindow"
         Title="PersonManagamentWindow"
         TransparencyLevelHint="Blur"
         Background="#C0000000"

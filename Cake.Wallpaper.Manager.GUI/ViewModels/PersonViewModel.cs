@@ -33,8 +33,6 @@ public class PersonViewModel : ViewModelBase {
     public PersonViewModel(Person person, IWallpaperRepository wallpaperRepository) {
         this._person = person;
         this._wallpaperRepository = wallpaperRepository;
-        //TODO:Move this into an activator
-        LoadDataAsync().ConfigureAwait(false).GetAwaiter();
     }
 
     public async Task LoadDataAsync() {

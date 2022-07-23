@@ -8,7 +8,7 @@ using ReactiveUI;
 
 namespace Cake.Wallpaper.Manager.GUI.Views;
 
-public partial class FranchiseSelectDialogueWindow : ReactiveWindow<FranchiseSelectDialogueWindowViewModel> {
+public partial class FranchiseSelectDialogueWindow : ReactiveWindow<FranchiseSelectWindowViewModel> {
     public FranchiseSelectDialogueWindow() {
         InitializeComponent();
         #if DEBUG

@@ -7,7 +7,7 @@
         x:Class="Cake.Wallpaper.Manager.GUI.Views.FranchiseSelectDialogueWindow"
         Title="FranchiseSelectDialogueWindow">
     <Design.DataContext>
-        <viewModels:FranchiseSelectDialogueWindowViewModel />
+        <viewModels:FranchiseSelectWindowViewModel />
     </Design.DataContext>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
