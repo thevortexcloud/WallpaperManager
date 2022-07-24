@@ -156,8 +156,12 @@ WHERE PF.Person = @person"
             };
         } else {
             wallpapercmd = new SqliteCommand() {
-                CommandText = @"SELECT id,Name,DateAdded, Author, FileName, Source FROM Wallpapers
-                                                   WHERE name LIKE '%' || @name ||'%' OR Filename LIKE '%' || @name ||'%'",
+                CommandText = @"
+SELECT wallpapers.id,wallpapers.Name,DateAdded, Author, FileName, Source FROM Wallpapers wallpapers
+INNER JOIN WallpaperPeople WP on Wallpapers.id = WP.WallpaperID
+INNER JOIN People P on WP.PersonID = P.Id
+WHERE wallpapers.name LIKE '%' || @name ||'%' OR wallpapers.Filename LIKE '%' || @name ||'%' OR p.name LIKE '%'|| @name || '%'
+GROUP BY  wallpapers.id, wallpapers.Name, DateAdded, Author, FileName, Source",
             };
             wallpapercmd.Parameters.Add("@name", SqliteType.Text).Value = searchTerm;
         }
@@ -255,9 +259,12 @@ FROM People;"
     /// <returns>A list of all people that exist in the system</returns>
     public IAsyncEnumerable<Person> RetrievePeople(string searchTerm) {
         SqliteCommand cmd = new SqliteCommand() {
-            CommandText = @"SELECT Id, Name, PrimaryFranchise
-FROM People
-WHERE Name LIKE '%' || @term || '%'"
+            CommandText = @"SELECT people.Id, people.Name, PrimaryFranchise
+FROM People people
+LEFT OUTER JOIN PeopleFranchises PF on People.Id = PF.Person
+LEFT OUTER JOIN Franchise F on F.Id = PF.Franchise
+WHERE people.Name LIKE '%' || @term || '%' OR f.Name LIKE '%' || @term || '%'
+GROUP BY people.Id, people.Name, PrimaryFranchise"
         };
         cmd.Parameters.Add("@term", SqliteType.Text).Value = searchTerm;
 
