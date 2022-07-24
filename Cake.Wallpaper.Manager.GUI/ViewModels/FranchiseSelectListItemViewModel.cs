@@ -78,9 +78,9 @@ public class FranchiseSelectListItemViewModel : ViewModelBase {
     public FranchiseSelectListItemViewModel(Franchise franchise, bool selected = false) {
         this._franchise = franchise;
         this.Selected = selected;
-        //For every level down the hierarchy, we need to add 10 to the margins
-        //This makes the franchise list significantly easier to read
-        this.Margin = new Thickness(this.Franchise.Depth * 10, 0, 0, 0);
+        //For every level down the hierarchy, we need to add 15 to the margins
+        //This makes the franchise list significantly easier to read and to easily understand the hierachy
+        this.Margin = new Thickness(this.Franchise.Depth * 15, 0, 0, 0);
     }
     #endregion
 }
