@@ -86,11 +86,10 @@ WHERE PF.Person = @person"
             under_part
             WHERE Franchise.ParentId = under_part.id
  ORDER BY under_part.level + 1 DESC,
-             parentid
+             parentid, name
             )
             SELECT id, name, parentid, level
-            FROM under_part
-            ;"
+            FROM under_part;"
         };
 
         return this.ParseFranchiseListQuery(cmd);
@@ -112,8 +111,8 @@ WHERE PF.Person = @person"
             FROM Franchise,
             under_part
             WHERE Franchise.ParentId = under_part.id
-               ORDER BY under_part.level + 1 DESC,
-             parentid
+                ORDER BY under_part.level + 1 DESC,
+             parentid, name
             )
             SELECT id, name, parentid, level
             FROM under_part
