@@ -13,8 +13,13 @@ internal sealed class SqlLite : SqlLiteBase {
     #region Public methods
     public Task InsertFranchiseAsync(Franchise franchise) {
         SqliteCommand cmd = new SqliteCommand() {
-            CommandText = @"INSERT OR REPLACE INTO main.Franchise (Id, Name, ParentId)
-            values (@id, @name, @parent);"
+            CommandText = @"INSERT INTO main.Franchise (Id, Name, ParentId)
+            values (@id, @name, @parent)
+            ON CONFLICT(id) DO
+            UPDATE SET
+            Name = @name,
+            ParentId = @parent
+            WHERE id = @id;"
         };
         cmd.Parameters.Add("@id", SqliteType.Integer).Value = franchise.ID == 0 ? DBNull.Value : franchise.ID;
         cmd.Parameters.Add("@Name", SqliteType.Text).Value = franchise.Name;
