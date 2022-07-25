@@ -25,7 +25,7 @@ namespace Cake.Wallpaper.Manager.Tests.Core.GUI.Viewmodels {
             var model = new PersonSelectWindowViewModel(repoMock.Object);
             Assert.Empty(model.People);
             Assert.Empty(model.SelectedPeople);
-            
+
             await model.RefreshDataAsync();
 
             Assert.NotEmpty(model.People);
@@ -48,7 +48,7 @@ namespace Cake.Wallpaper.Manager.Tests.Core.GUI.Viewmodels {
 
             Assert.Empty(model.People);
             Assert.Empty(model.SelectedPeople);
-            
+
             await model.RefreshDataAsync();
 
             Assert.Empty(model.People);
@@ -108,6 +108,71 @@ namespace Cake.Wallpaper.Manager.Tests.Core.GUI.Viewmodels {
             Assert.Equal(person, model.People.First().Person);
 
             repoMock.Verify(o => o.RetrievePeopleAsync(It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public void SelectPersonUpdatesSelectList() {
+            //Add a single person we can compare against
+            var repoMock = new Mock<IWallpaperRepository>();
+            var person = new Person() {
+                ID = 1,
+                Name = "Blah",
+            };
+
+            repoMock.Setup(o => o.RetrievePeopleAsync()).Returns(new List<Person>() {
+                person
+            }.ToAsyncEnumerable());
+
+            var model = new PersonSelectWindowViewModel(repoMock.Object);
+
+            Assert.Empty(model.People);
+            Assert.Empty(model.SelectedPeople);
+
+            model.People.Add(new PersonViewModel(person, repoMock.Object));
+
+            Assert.NotEmpty(model.People);
+            Assert.Empty(model.SelectedPeople);
+            Assert.Single(model.People);
+
+            model.SelectedPersonToAddToList = model.People.First();
+
+            Assert.NotEmpty(model.SelectedPeople);
+            Assert.Single(model.SelectedPeople);
+            Assert.Equal(model.SelectedPersonToAddToList, model.SelectedPeople.First());
+        }
+
+        [Fact]
+        public void SelectPersonToRemoveUpdatesSelectList() {
+            //Add a single person we can compare against
+            var repoMock = new Mock<IWallpaperRepository>();
+            var person = new Person() {
+                ID = 1,
+                Name = "Blah",
+            };
+
+            repoMock.Setup(o => o.RetrievePeopleAsync()).Returns(new List<Person>() {
+                person
+            }.ToAsyncEnumerable());
+
+            var model = new PersonSelectWindowViewModel(repoMock.Object);
+
+            Assert.Empty(model.People);
+            Assert.Empty(model.SelectedPeople);
+
+            model.People.Add(new PersonViewModel(person, repoMock.Object));
+
+            Assert.NotEmpty(model.People);
+            Assert.Empty(model.SelectedPeople);
+            Assert.Single(model.People);
+
+            model.SelectedPeople.Add(model.People.First());
+
+            Assert.NotEmpty(model.SelectedPeople);
+            Assert.Single(model.SelectedPeople);
+
+            model.SelectedPersonToRemoveFromList = model.People.First();
+
+            Assert.Empty(model.SelectedPeople);
         }
     }
 }

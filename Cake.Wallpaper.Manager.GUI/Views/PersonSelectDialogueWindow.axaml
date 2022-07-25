@@ -18,20 +18,40 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_Done" Command="{Binding DoneCommand}"></MenuItem>
         </Menu>
-        <TextBox DockPanel.Dock="Top" HorizontalAlignment="Stretch" Text="{Binding PersonSearchTerm}" Watermark="Search..."></TextBox>
-        <ListBox DockPanel.Dock="Bottom" AutoScrollToSelectedItem="True" HorizontalAlignment="Left"
-                 VerticalAlignment="Stretch"
-                 SelectedItems="{Binding SelectedPeople}"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent"
-                 SelectionMode="Multiple"
-                 ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                 Items="{Binding People}"
-                 MaxWidth="800">
-            <ListBox.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel Orientation="Horizontal"></WrapPanel>
-                </ItemsPanelTemplate>
-            </ListBox.ItemsPanel>
-        </ListBox>
+        <TextBox DockPanel.Dock="Top" HorizontalAlignment="Stretch" Text="{Binding PersonSearchTerm}"
+                 Watermark="Search...">
+        </TextBox>
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+            <ListBox AutoScrollToSelectedItem="True" HorizontalAlignment="Left"
+                     VerticalAlignment="Stretch"
+                     SelectedItem="{Binding SelectedPersonToAddToList}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent"
+                     SelectionMode="Single"
+                     ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                     Items="{Binding People}"
+                     MaxWidth="800">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"></WrapPanel>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+            </ListBox>
+            <Border BorderThickness="3" BorderBrush="Gray">
+                <ListBox AutoScrollToSelectedItem="True" HorizontalAlignment="Left"
+                         VerticalAlignment="Stretch"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent"
+                         SelectionMode="Multiple"
+                         ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                         Items="{Binding SelectedPeople}"
+                         MaxWidth="750"
+                         SelectedItem="{Binding SelectedPersonToRemoveFromList}">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"></WrapPanel>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                </ListBox>
+            </Border>
+        </StackPanel>
     </DockPanel>
 </Window>

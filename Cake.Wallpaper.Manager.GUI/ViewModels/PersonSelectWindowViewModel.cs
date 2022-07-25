@@ -20,13 +20,15 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
 
         #region Private variables
         private string? _personSearchTerm;
+        private PersonViewModel? _selectedPersonToRemoveFromList;
+        private PersonViewModel? _selectedPersonToAddToList;
         #endregion
 
         #region Public properties
         /// <summary>
         /// Gets/sets the list of people to display
         /// </summary>
-        public ObservableCollection<PersonViewModel> People { get; set; } = new ObservableCollection<PersonViewModel>();
+        public ObservableCollection<PersonViewModel> People { get; private set; } = new ObservableCollection<PersonViewModel>();
 
         /// <summary>
         /// Gets the list of people selected by the user 
@@ -44,6 +46,22 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         public ViewModelActivator Activator { get; }
 
         /// <summary>
+        /// Gets/sets the person to add to the <see cref="SelectedPeople"/> list
+        /// </summary>
+        public PersonViewModel? SelectedPersonToRemoveFromList {
+            get => this._selectedPersonToRemoveFromList;
+            set => this.RaiseAndSetIfChanged(ref this._selectedPersonToRemoveFromList, value, nameof(SelectedPersonToRemoveFromList));
+        }
+
+        /// <summary>
+        /// Gets/sets the person to remove from the <see cref="SelectedPeople"/> list
+        /// </summary>
+        public PersonViewModel? SelectedPersonToAddToList {
+            get => this._selectedPersonToAddToList;
+            set => this.RaiseAndSetIfChanged(ref this._selectedPersonToAddToList, value, nameof(SelectedPersonToAddToList));
+        }
+
+        /// <summary>
         /// Gets/sets the current search term for the person filter
         /// </summary>
         public string? PersonSearchTerm {
@@ -56,14 +74,27 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         public PersonSelectWindowViewModel(IWallpaperRepository wallpaperRepository) {
             this._wallpaperRepository = wallpaperRepository;
             this.Activator = new ViewModelActivator();
+
+            //When someone clicks done, return this entire instance so the caller can grab what ever values they want
             this.DoneCommand = ReactiveCommand.Create(() => this);
 
             this.WhenActivated((disposable) => { Disposable.Create(() => { }).DisposeWith(disposable); });
 
+            //Register our search handler
             this.WhenAnyValue(o => o.PersonSearchTerm)
                 .Throttle(TimeSpan.FromMilliseconds(500))
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(HandlePersonSearchAsync);
+
+            //Register our person selection handler
+            this.WhenAnyValue(o => o.SelectedPersonToRemoveFromList)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(OnPersonSelected);
+
+            //Register our handler for removing people from the selection list
+            this.WhenAnyValue(o => o.SelectedPersonToAddToList)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(OnRemoveSelectedPerson);
         }
         #endregion
 
@@ -86,6 +117,22 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         #endregion
 
         #region Private methods
+        /// <summary>
+        /// Removes the given person model from the <see cref="SelectedPeople"/> list
+        /// </summary>
+        /// <param name="model"></param>
+        private void OnPersonSelected(PersonViewModel? model) {
+            if (model is not null) {
+                this.SelectedPeople.Remove(model);
+            }
+        }
+
+        private void OnRemoveSelectedPerson(PersonViewModel? model) {
+            if (model is not null && !this.SelectedPeople.Contains(model)) {
+                this.SelectedPeople.Add(model);
+            }
+        }
+
         /// <summary>
         /// Attempts to handle the given search term value and load any related data
         /// </summary>
