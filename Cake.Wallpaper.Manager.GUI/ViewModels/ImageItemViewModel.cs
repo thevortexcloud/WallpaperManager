@@ -18,12 +18,14 @@ using Cake.Wallpaper.Manager.Core.Models;
 
 namespace Cake.Wallpaper.Manager.GUI.ViewModels;
 
-public class ImageItemViewModel : ViewModelBase {
+public sealed class ImageItemViewModel : ViewModelBase, IDisposable {
     #region Private readonly variables
     /// <summary>
     /// The underlying wallpaper instance that this model is backed by. Directly changing values on here will not allow for proper binding
     /// </summary>
     private readonly Core.Models.Wallpaper _wallpaper;
+
+    private readonly IWallpaperRepository _repository;
     #endregion
 
     #region Private variables
@@ -34,11 +36,11 @@ public class ImageItemViewModel : ViewModelBase {
 
     #region Public properties
     /// <summary>
-    /// Gets/sets the current thumbnail image
+    /// Gets the current thumbnail image
     /// </summary>
     public Bitmap? ThumbnailImage {
         get => this._thumbnailImage;
-        set {
+        private set {
             if (value is not null && (value.Size.AspectRatio <= 1.6 || value.Size.AspectRatio >= 1.8)) {
                 this.ImageBorderThickness = new Thickness(2);
             }
@@ -47,17 +49,32 @@ public class ImageItemViewModel : ViewModelBase {
         }
     }
 
+    /// <summary>
+    /// Gets the current large version of the image
+    /// </summary>
     public Bitmap? Image {
         get { return this._image; }
-        set => this.RaiseAndSetIfChanged(ref this._image, value);
+        private set => this.RaiseAndSetIfChanged(ref this._image, value);
     }
 
+    /// <summary>
+    /// Returns the current ID of the wallpaper
+    /// </summary>
     public int ID => this._wallpaper.ID;
 
+    /// <summary>
+    /// Returns the franchises that this image belongs to
+    /// </summary>
     public ObservableCollection<FranchiseSelectListItemViewModel> Franchises { get; } = new ObservableCollection<FranchiseSelectListItemViewModel>();
 
+    /// <summary>
+    /// Returns the name of the file that this instance represents
+    /// </summary>
     public string? FileName => this._wallpaper.FileName;
 
+    /// <summary>
+    /// Gets/sets the name of the author who created the image
+    /// </summary>
     public string? Author {
         get { return this._wallpaper.Author; }
         set {
@@ -68,6 +85,9 @@ public class ImageItemViewModel : ViewModelBase {
         }
     }
 
+    /// <summary>
+    /// Gets/sets the source of the wallpaper (EG Imgur, DeviantArt, Art Station, etc)
+    /// </summary>
     public string? Source {
         get { return this._wallpaper.Source; }
         set {
@@ -78,6 +98,9 @@ public class ImageItemViewModel : ViewModelBase {
         }
     }
 
+    /// <summary>
+    /// Gets/sets the name of the wallpaper
+    /// </summary>
     public string? Name {
         get {
             if (!string.IsNullOrWhiteSpace(this._wallpaper.Name)) {
@@ -94,26 +117,44 @@ public class ImageItemViewModel : ViewModelBase {
         }
     }
 
+    /// <summary>
+    /// Returns the primary franchise of the wallpaper
+    /// </summary>
     public Franchise PrimaryFranchise => this?._wallpaper?.Franchises?.FirstOrDefault();
 
-
+    /// <summary>
+    /// Returns the border thickness of the image
+    /// </summary>
+    /// <remarks>This provides a visual indication if an image has an incorrect aspect ratio</remarks>
     public Thickness ImageBorderThickness {
         get => this._imageBorderThickness;
-        set => this.RaiseAndSetIfChanged(ref this._imageBorderThickness, value);
+        private set => this.RaiseAndSetIfChanged(ref this._imageBorderThickness, value);
     }
 
+    /// <summary>
+    /// Returns the list of people to display
+    /// </summary>
     public ObservableCollection<PersonViewModel> People { get; } = new ObservableCollection<PersonViewModel>();
+
+    /// <summary>
+    /// Returns the list of people the user has selected
+    /// </summary>
     public ObservableCollection<PersonViewModel> SelectedPeople { get; } = new ObservableCollection<PersonViewModel>();
     #endregion
 
     #region Public constructor
     public ImageItemViewModel(Core.Models.Wallpaper wallpaper, IWallpaperRepository repository) {
-        this._wallpaper = wallpaper;
-        foreach (var person in this._wallpaper.People) {
-            this.People.Add(new PersonViewModel(person, repository));
+        this._wallpaper = wallpaper ?? throw new ArgumentNullException(nameof(wallpaper));
+        this._repository = repository;
+
+        var wallpaperPeople = this._wallpaper.People;
+        if (wallpaperPeople != null) {
+            foreach (var person in wallpaperPeople) {
+                this.People.Add(new PersonViewModel(person, repository));
+            }
         }
 
-        foreach (var franchise in this._wallpaper?.Franchises?.Select(o => new FranchiseSelectListItemViewModel(o))) {
+        foreach (var franchise in this._wallpaper.Franchises.Select(o => new FranchiseSelectListItemViewModel(o))) {
             Franchises.Add(franchise);
         }
     }
@@ -255,6 +296,17 @@ public class ImageItemViewModel : ViewModelBase {
             Franchises = this.Franchises.Select(o => o.Franchise).ToList(),
             People = this.People.Select(o => o.Person).ToList()
         };
+    }
+    #endregion
+
+    #region IDisposable implementation
+    public void Dispose() {
+        this._thumbnailImage?.Dispose();
+        this._image?.Dispose();
+
+        //Make sure to null these if we can have an unusable reference left that could cause all sorts of problems to a caller
+        this.ThumbnailImage = null;
+        this.Image = null;
     }
     #endregion
 }

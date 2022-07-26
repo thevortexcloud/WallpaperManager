@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cake.Wallpaper.Manager.Core.Models;
@@ -70,6 +71,47 @@ public class ImageItemViewModelTests {
         await model.LoadBigImageAsync(new CancellationToken(false));
 
         Assert.Null(model.Image);
+    }
+
+    [Fact]
+    public void CanConvertToWallpaper() {
+        var wallpaper = new Manager.Core.Models.Wallpaper() {
+            ID = 1,
+            Author = "Ozymandias",
+            Name = "King of kings",
+            Source = "A fallen kingdom",
+            People = new List<Person>() {
+                new Person() {
+                    ID = 1,
+                }
+            },
+            DateAdded = DateTime.Now,
+            FileName = "Blah",
+            FilePath = "Blah",
+        };
+        var franchise = new Franchise() {
+            Name = "Blah",
+            ID = 1,
+            ParentID = 0,
+        };
+        wallpaper.Franchises.Add(franchise);
+
+        //No actual data access should be happening for this test
+        var model = new ImageItemViewModel(wallpaper, new MemoryRepository());
+
+        var converted = model.ConvertToWallpaper();
+        Assert.Equal(wallpaper.ID, converted.ID);
+        Assert.Equal(wallpaper.Author, converted.Author);
+        Assert.Equal(wallpaper.Name, converted.Name);
+        Assert.Equal(wallpaper.Source, converted.Source);
+        Assert.Equal(wallpaper.DateAdded, converted.DateAdded);
+        Assert.Equal(wallpaper.FileName, converted.FileName);
+
+        Assert.Single(wallpaper.Franchises);
+        Assert.Single(wallpaper.People);
+
+        Assert.Equal(wallpaper.People.First(), converted.People.First());
+        Assert.Equal(wallpaper.Franchises.First(), converted.Franchises.First());
     }
 
     [Fact]

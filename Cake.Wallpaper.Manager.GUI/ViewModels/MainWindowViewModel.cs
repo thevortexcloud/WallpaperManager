@@ -334,15 +334,11 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 //Make sure we have some page data to handle, and if not we need clear everything
                 if (!Images.Any()) {
                     //Clear any data we have on the current page as we are trying to display a blank page
-                    Parallel.ForEach(this.CurrentPageData,
-                        (o, p) => {
-                            o.Image?.Dispose();
-                            o.ThumbnailImage?.Dispose();
-                            o.Image = null;
-                            o.ThumbnailImage = null;
-                        });
+                    Parallel.ForEach(this.CurrentPageData, (o, p) => { o.Dispose(); });
                     //Finally clean up the list itself
                     this.CurrentPageData.Clear();
+                    //Force a garbage collection since we are dealing with a lot of data and it seems to take a long time for it to get auto removed
+                    GC.Collect();
 
                     //Set this to 0 as we have no pages to display
                     this.CurrentPage = 0;
@@ -379,13 +375,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 }
 
                 //Iterate through all the image data we have and dispose of it or we will run out of memory very quickly
-                Parallel.ForEach(Images,
-                    (o, p) => {
-                        o.Image?.Dispose();
-                        o.ThumbnailImage?.Dispose();
-                        o.Image = null;
-                        o.ThumbnailImage = null;
-                    });
+                Parallel.ForEach(Images, (o, p) => { o.Dispose(); });
                 //Force a garbage collection since we are dealing with a lot of data and it seems to take a long time for it to get auto removed
                 GC.Collect();
 
