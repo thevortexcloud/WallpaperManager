@@ -16,6 +16,7 @@ public partial class FranchiseSelectDialogueWindow : ReactiveWindow<FranchiseSel
         #endif
 
         this.WhenActivated(d => d(ViewModel!.DoneCommand.Subscribe(Close)));
+        this.WhenActivated(async o => { o(this.ViewModel!.RefreshDataAsync()); });
     }
 
     private void InitializeComponent() {

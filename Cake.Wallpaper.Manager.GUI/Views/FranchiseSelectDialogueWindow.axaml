@@ -14,10 +14,13 @@
             <MenuItem Command="{Binding DoneCommand}" Header="Done"></MenuItem>
             <MenuItem Header="Cancel"></MenuItem>
         </Menu>
-        <TextBox Watermark="Search..." DockPanel.Dock="Top"></TextBox>
-        <!--<ListBox DockPanel.Dock="Left" Items="{Binding DbFranchises}"></ListBox>-->
+        <TextBox Watermark="Search..." Text="{Binding SearchText}" DockPanel.Dock="Top"></TextBox>
         <ListBox
-            DockPanel.Dock="Right" Items="{Binding DbFranchises}">
+            DockPanel.Dock="Left" Items="{Binding DbFranchises}">
+        </ListBox>
+
+        <ListBox
+            DockPanel.Dock="Right" Items="{Binding SelectedFranchiseSelectListItemViewModels}">
         </ListBox>
     </DockPanel>
 </Window>
