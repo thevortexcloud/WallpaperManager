@@ -12,7 +12,6 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Command="{Binding DoneCommand}" Header="Done"></MenuItem>
-            <MenuItem Header="Cancel"></MenuItem>
         </Menu>
         <TextBox Watermark="Search..." Text="{Binding SearchText}" DockPanel.Dock="Top"></TextBox>
         <ListBox

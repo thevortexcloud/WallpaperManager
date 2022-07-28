@@ -25,7 +25,7 @@
         <UniformGrid DockPanel.Dock="Top" VerticalAlignment="Stretch" Columns="2">
             <Grid RowDefinitions="Auto *">
                 <TextBox Text="{Binding PersonSearchTerm}" Watermark="Search..."></TextBox>
-                <ListBox Grid.Row="1" Name="Box" VirtualizationMode="Simple" VerticalAlignment="Stretch"
+                <ListBox AutoScrollToSelectedItem="True" Grid.Row="1" Name="Box" VirtualizationMode="Simple" VerticalAlignment="Stretch"
                          SelectedItem="{Binding SelectedPerson}" Items="{Binding People}">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
