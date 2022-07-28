@@ -8,10 +8,12 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.ReactiveUI;
 using Cake.Wallpaper.Manager.Core.Interfaces;
 using Cake.Wallpaper.Manager.Core.WallpaperRepositories;
+using Cake.Wallpaper.Manager.GUI.ProgramProviders;
 using DynamicData;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ReactiveUI;
@@ -119,69 +121,71 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         public ReactiveCommand<Unit, IEnumerable<FranchiseSelectListItemViewModel>?> SelectFranchiseCommand { get; }
         public ReactiveCommand<Unit, Unit> DeleteSelectedFranchiseCommand { get; }
         public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+        public ObservableCollection<MenuItem> ProgramProviders { get; } = new ObservableCollection<MenuItem>();
         #endregion
 
         #region Public constructor
-        public MainWindowViewModel(IWallpaperRepository wallpaperRepository) {
-            //Subscribe to the main search box
-            //NOTE: For some reason this fires when the window first opens, and then sends us a null value. It's very annoying
-            this.WhenAnyValue(x => x.SearchText)
-                .Throttle(TimeSpan.FromMilliseconds(400))
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(this.DoSearch);
+        public MainWindowViewModel(IWallpaperRepository wallpaperRepository, IEnumerable<IProgramProvider> programProviders) {
+            try {
+                this.CreateProgramProviderMenuItems(programProviders);
+                //Subscribe to the main search box
+                this.WhenAnyValue(x => x.SearchText)
+                    .Throttle(TimeSpan.FromMilliseconds(400))
+                    .ObserveOn(RxApp.MainThreadScheduler)
+                    .Subscribe(this.DoSearch);
 
-            this.WhenAnyValue(o => o.SelectedImage)
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(this.SelectedImageChanged);
+                this.WhenAnyValue(o => o.SelectedImage)
+                    .ObserveOn(RxApp.MainThreadScheduler)
+                    .Subscribe(this.SelectedImageChanged);
 
-            //Set up our button handlers
-            this.NextImagePage = ReactiveCommand.CreateFromTask(NextPageAsync);
-            this.PreviousImagePage = ReactiveCommand.CreateFromTask(PreviousPageAsync);
-            this.Refresh = ReactiveCommand.CreateFromTask(RefreshAsync);
-            this.SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
-            this.DeleteSelectedFranchiseCommand = ReactiveCommand.CreateFromTask(async () => {
-                try {
-                    if (this.SelectedImage is null || !(this.SelectedImage.Franchises?.Any() ?? false)) {
-                        return;
+                //Set up our button handlers
+                this.NextImagePage = ReactiveCommand.CreateFromTask(NextPageAsync);
+                this.PreviousImagePage = ReactiveCommand.CreateFromTask(PreviousPageAsync);
+                this.Refresh = ReactiveCommand.CreateFromTask(RefreshAsync);
+                this.SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
+                this.DeleteSelectedFranchiseCommand = ReactiveCommand.CreateFromTask(async () => {
+                    try {
+                        if (this.SelectedImage is null || !(this.SelectedImage.Franchises?.Any() ?? false)) {
+                            return;
+                        }
+
+                        //Find every selected franchise
+                        var selectedFranchises = this.SelectedImage.Franchises.Where(o => o.Selected).ToList();
+                        //Now remove them from the list, this will get saved properly when the user hits save
+                        this.SelectedImage.Franchises.RemoveMany(selectedFranchises);
+                    } catch (Exception ex) {
+                        await Common.ShowExceptionMessageBoxAsync("There was a problem removing a franchise", ex);
+                    }
+                });
+
+                this.SelectFranchiseCommand = ReactiveCommand.CreateFromTask(async () => {
+                    //var store = new MainWindowViewModel();
+
+                    var result = await ShowFranchiseSelectDialog?.Handle(Unit.Default);
+                    var franchises = result?.SelectedFranchiseSelectListItemViewModels?.AsEnumerable();
+                    if (franchises != null) {
+                        this.SelectedImage?.Franchises?.AddRange(franchises);
+                        return franchises;
                     }
 
-                    //Find every selected franchise
-                    var selectedFranchises = this.SelectedImage.Franchises.Where(o => o.Selected).ToList();
-                    //Now remove them from the list, this will get saved properly when the user hits save
-                    this.SelectedImage.Franchises.RemoveMany(selectedFranchises);
-                } catch (Exception ex) {
-                    await Common.ShowExceptionMessageBoxAsync("There was a problem removing a franchise", ex);
-                }
-            });
-
-            this.SelectFranchiseCommand = ReactiveCommand.CreateFromTask(async () => {
-                //var store = new MainWindowViewModel();
-
-                var result = await ShowFranchiseSelectDialog?.Handle(Unit.Default);
-                var franchises = result?.SelectedFranchiseSelectListItemViewModels?.AsEnumerable();
-                if (franchises != null) {
-                    this.SelectedImage?.Franchises?.AddRange(franchises);
-                    return franchises;
-                }
-
-                return null;
-            });
-
-            this.SelectPersonCommand = ReactiveCommand.CreateFromTask(async () => {
-                //Can't do anything if nothing is selected
-                if (this.SelectedImage is null) {
                     return null;
-                }
+                });
 
-                var result = await ShowPersonSelectDialog?.Handle(Unit.Default);
-                var franchises = (IEnumerable<PersonViewModel>) result?.SelectedPeople;
-                if (franchises != null) {
-                    this.SelectedImage?.People?.AddRange(franchises);
-                    return franchises;
-                }
+                this.SelectPersonCommand = ReactiveCommand.CreateFromTask(async () => {
+                    //Can't do anything if nothing is selected
+                    if (this.SelectedImage is null) {
+                        return null;
+                    }
 
-                return null;
-            });
+                    var result = await ShowPersonSelectDialog?.Handle(Unit.Default);
+                    var franchises = (IEnumerable<PersonViewModel>) result?.SelectedPeople;
+                    if (franchises != null) {
+                        this.SelectedImage?.People?.AddRange(franchises);
+                        return franchises;
+                    }
+
+                    return null;
+                });
 
             this.DeletePersonCommand = ReactiveCommand.Create(() => {
                 //Can't do anything if nothing is selected
@@ -189,14 +193,33 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                     return;
                 }
 
-                //Just do a simple remove from the people list. the save will fix everything up when it hits the storage
-                this.SelectedImage.People.RemoveMany(this.SelectedImage.SelectedPeople);
-            });
-            this._wallpaperRepository = wallpaperRepository;
+                    //Just do a simple remove from the people list. the save will fix everything up when it hits the storage
+                    this.SelectedImage.People.RemoveMany(this.SelectedImage.SelectedPeople);
+                });
+                this._wallpaperRepository = wallpaperRepository;
+            } catch (Exception ex) {
+                Common.ShowExceptionMessageBoxAsync("There was a problem initialising the main window", ex);
+            }
         }
         #endregion
 
         #region Private methods
+        private void CreateProgramProviderMenuItems(IEnumerable<IProgramProvider> providers) {
+            foreach (var provider in providers) {
+                var menuitem = new MenuItem() {
+                    Header = provider.DisplayName,
+                    Command = ReactiveCommand.Create(() => {
+                        if (this.SelectedImage is null) {
+                            return;
+                        }
+
+                        provider.OpenWallpaperInProgram(this.SelectedImage.ConvertToWallpaper());
+                    })
+                };
+                this.ProgramProviders.Add(menuitem);
+            }
+        }
+
         /// <summary>
         /// Attempts to save the current page of data to the current <see cref="_wallpaperRepository"/>
         /// </summary>

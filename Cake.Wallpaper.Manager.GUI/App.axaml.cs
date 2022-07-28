@@ -6,6 +6,7 @@ using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using Cake.Wallpaper.Manager.Core.Interfaces;
 using Cake.Wallpaper.Manager.Core.WallpaperRepositories;
+using Cake.Wallpaper.Manager.GUI.ProgramProviders;
 using Cake.Wallpaper.Manager.GUI.ViewModels;
 using Cake.Wallpaper.Manager.GUI.Views;
 using Microsoft.Extensions.Configuration;
@@ -46,6 +47,7 @@ namespace Cake.Wallpaper.Manager.GUI {
                 serviceCollection.AddTransient<PersonManagementViewModel>();
                 serviceCollection.AddTransient<FranchiseManagementViewModel>();
 
+                serviceCollection.AddSingleton<IProgramProvider, GIMPFlatpakProgramProvider>(o => new GIMPFlatpakProgramProvider(config.WallpaperPath));
                 var miResolver = new MicrosoftDependencyResolver(serviceCollection);
                 miResolver.RegisterConstant(new AvaloniaActivationForViewFetcher(), typeof(IActivationForViewFetcher));
                 miResolver.RegisterConstant(new AutoDataTemplateBindingHook(), typeof(IPropertyBindingHook));

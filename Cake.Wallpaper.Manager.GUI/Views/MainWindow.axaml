@@ -62,6 +62,10 @@
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Top"
                                    Margin="0 4">
+                                <Image.ContextMenu>
+                                    <ContextMenu Items="{Binding ProgramProviders}">
+                                    </ContextMenu>
+                                </Image.ContextMenu>
                             </Image>
                             <Grid HorizontalAlignment="Stretch" ColumnDefinitions="Auto *"
                                   RowDefinitions="* auto auto auto auto auto" Grid.Margin="10">
