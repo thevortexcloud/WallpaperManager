@@ -14,27 +14,56 @@ using Splat;
 namespace Cake.Wallpaper.Manager.GUI.ViewModels;
 
 public sealed class FranchiseManagementViewModel : ViewModelBase {
+    #region Private readonly variables
     private readonly IWallpaperRepository _wallpaperRepository;
+    #endregion
+
+    #region Private variables
     private FranchiseSelectListItemViewModel? _selectedFranchise;
-    private string _searchText;
+    private string? _searchText;
+    #endregion
+
+    #region Public properties
+    /// <summary>
+    /// Returns the list of franchises to display
+    /// </summary>
     public ObservableCollection<FranchiseSelectListItemViewModel> Franchises { get; } = new ObservableCollection<FranchiseSelectListItemViewModel>();
 
-    public string SearchText {
+    /// <summary>
+    /// Gets/sets the current search filter text
+    /// </summary>
+    public string? SearchText {
         get => this._searchText;
         set => this.RaiseAndSetIfChanged(ref this._searchText, value);
     }
 
+    /// <summary>
+    /// Returns a command which allows for the user to set the parent ID of a franchise
+    /// </summary>
     public ReactiveCommand<Unit, Unit> SetParent { get; }
+
+    /// <summary>
+    /// Returns a command which allows for a user to create a new franchise
+    /// </summary>
     public ReactiveCommand<Unit, Unit> NewFranchise { get; }
+
+    /// <summary>
+    /// Returns a command which allows for a user to save all franchises
+    /// </summary>
     public ReactiveCommand<Unit, Unit> SaveFranchises { get; }
 
+    /// <summary>
+    /// Gets/sets the currently selected franchise
+    /// </summary>
     public FranchiseSelectListItemViewModel? SelectedFranchise {
         get => this._selectedFranchise;
         set => this.RaiseAndSetIfChanged(ref this._selectedFranchise, value);
     }
+    #endregion
 
-    public FranchiseManagementViewModel() {
-        this._wallpaperRepository = (IWallpaperRepository?) Locator.Current.GetService(typeof(IWallpaperRepository));
+    #region Public constructor
+    public FranchiseManagementViewModel(IWallpaperRepository wallpaperRepository) {
+        this._wallpaperRepository = wallpaperRepository;
         SetParent = ReactiveCommand.Create(SetParentHandler);
         NewFranchise = ReactiveCommand.Create(NewFranchiseHandler);
         SaveFranchises = ReactiveCommand.Create(SaveFranchisesHandler);
@@ -43,10 +72,14 @@ public sealed class FranchiseManagementViewModel : ViewModelBase {
             .Throttle(TimeSpan.FromMilliseconds(600))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(this.DoSearchAsync);
-
-        LoadDataAsync();
     }
+    #endregion
 
+    #region Private methods
+    /// <summary>
+    /// Attempts to perform a search operation with the given search term
+    /// </summary>
+    /// <param name="value">The value to search</param>
     private async void DoSearchAsync(string? value) {
         if (value is null) {
             return;
@@ -55,27 +88,38 @@ public sealed class FranchiseManagementViewModel : ViewModelBase {
         await this.LoadDataAsync(value);
     }
 
+    /// <summary>
+    /// Attempts to save all franchises to the repository
+    /// </summary>
     private async void SaveFranchisesHandler() {
         await _wallpaperRepository.SaveFranchiseInfosAsync(Franchises.Select(o => o.Franchise));
         await this.LoadDataAsync();
     }
 
+    /// <summary>
+    /// Adds a new franchise to the franchise list and selects it
+    /// </summary>
     private void NewFranchiseHandler() {
         var newfranchise = new FranchiseSelectListItemViewModel(new Franchise());
         this.Franchises.Add(newfranchise);
         this.SelectedFranchise = newfranchise;
     }
 
+    /// <summary>
+    /// Attempts to set the checked franchise's parent to the selected franchise
+    /// </summary>
     private void SetParentHandler() {
         if (this.SelectedFranchise is null) {
             return;
         }
 
         var selectedfranchises = Franchises.Where(o => o.Selected).ToList();
+        //Make sure the user has exactly one selected
         if (selectedfranchises.Count != 1) {
             return;
         }
 
+        //A franchise can't be a parent of itself
         if (this.SelectedFranchise == selectedfranchises.FirstOrDefault()) {
             return;
         }
@@ -83,7 +127,11 @@ public sealed class FranchiseManagementViewModel : ViewModelBase {
         this.SelectedFranchise.ParentID = selectedfranchises.FirstOrDefault()?.Franchise?.ID ?? 0;
     }
 
-    private async Task LoadDataAsync(string? searchTerm = null) {
+    /// <summary>
+    /// Attempts to load data to display with the given search term
+    /// </summary>
+    /// <param name="searchTerm">The search term to filter with</param>
+    public async Task LoadDataAsync(string? searchTerm = null) {
         this.Franchises.Clear();
         IAsyncEnumerable<Franchise>? franchises = null;
         franchises = string.IsNullOrWhiteSpace(searchTerm) ? this._wallpaperRepository.RetrieveFranchises() : this._wallpaperRepository.RetrieveFranchises(searchTerm);
@@ -95,4 +143,5 @@ public sealed class FranchiseManagementViewModel : ViewModelBase {
             Franchises.Add(franchise);
         }
     }
+    #endregion
 }
