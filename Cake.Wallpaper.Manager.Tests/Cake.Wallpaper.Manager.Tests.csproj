@@ -12,6 +12,8 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
         <PackageReference Include="Moq" Version="4.18.1" />
+        <PackageReference Include="ReactiveUI.Testing" Version="18.3.1" />
+        <PackageReference Include="System.IO.Abstractions" Version="17.0.24" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -26,6 +28,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Cake.Wallpaper.Manager.Core\Cake.Wallpaper.Manager.Core.csproj" />
       <ProjectReference Include="..\Cake.Wallpaper.Manager.GUI\Cake.Wallpaper.Manager.GUI.csproj" />
+      <ProjectReference Include="..\Cake.WallpaperManager.Importer\Cake.WallpaperManager.Importer.csproj" />
     </ItemGroup>
 
 </Project>

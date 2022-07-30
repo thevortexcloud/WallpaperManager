@@ -28,12 +28,12 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// <summary>
         /// Gets/sets the list of people to display
         /// </summary>
-        public ObservableCollection<PersonViewModel> People { get; private set; } = new ObservableCollection<PersonViewModel>();
+        public ObservableCollection<PersonViewModel> People { get; } = new ObservableCollection<PersonViewModel>();
 
         /// <summary>
         /// Gets the list of people selected by the user 
         /// </summary>
-        public ObservableCollection<PersonViewModel> SelectedPeople { get; private set; } = new ObservableCollection<PersonViewModel>();
+        public ObservableCollection<PersonViewModel> SelectedPeople { get; } = new ObservableCollection<PersonViewModel>();
 
         /// <summary>
         /// A command to execute when the user has completed their selection
