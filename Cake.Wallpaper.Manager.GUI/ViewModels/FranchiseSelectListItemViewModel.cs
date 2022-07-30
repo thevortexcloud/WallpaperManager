@@ -83,4 +83,20 @@ public class FranchiseSelectListItemViewModel : ViewModelBase {
         this.Margin = new Thickness(this.Franchise.Depth * 15, 0, 0, 0);
     }
     #endregion
+
+    #region Ovrride default object methods
+    public override bool Equals(object? obj) {
+        //We only care if we are equal to another instance, and we consider anything with the same ID to functionally refer to the same bit of data
+        if (obj is FranchiseSelectListItemViewModel viewModel) {
+            return this.ID == viewModel.ID;
+        } else {
+            return false;
+        }
+    }
+
+    public override int GetHashCode() {
+        //We consider anything with the same ID to functionally refer to the same bit of data, as such the hashcode can just be the ID to make sure anything that relies on it will ensure some level of uniqueness
+        return this.ID;
+    }
+    #endregion
 }

@@ -180,7 +180,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         private async Task<IEnumerable<PersonViewModel>?> ShowSelectPersonAsync() {
             try {
                 //Can't do anything if nothing is selected
-                if (this.SelectedImage is null) {
+                if (this.SelectedImage?.People is null) {
                     return null;
                 }
 
@@ -188,7 +188,8 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 var people = (IEnumerable<PersonViewModel>?) result?.SelectedPeople;
                 //If we have any results back from the dialogue, show add it to the list
                 if (people != null) {
-                    this.SelectedImage?.People?.AddRange(people);
+                    //Don't allow users to add the same people multiple times, this works because the equals method for a person view model has been overridden to compare by the ID
+                    this.SelectedImage.People.AddRange(people.Except(this.SelectedImage.People));
                     return people;
                 }
 
@@ -214,7 +215,8 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 var result = await this.ShowFranchiseSelectDialog?.Handle(Unit.Default);
                 var franchises = result?.SelectedFranchiseSelectListItemViewModels;
                 if (franchises != null) {
-                    this.SelectedImage?.Franchises?.AddRange(franchises);
+                    //Don't allow people to add the same franchise multiple times, this works because the equals method for a franchise view model has been overridden to compare by the ID
+                    this.SelectedImage?.Franchises?.AddRange(franchises.Except(this.SelectedImage.Franchises));
                     return franchises;
                 }
 
