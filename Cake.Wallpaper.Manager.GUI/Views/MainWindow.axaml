@@ -99,7 +99,7 @@
                                                               Items="{Binding SelectedImage.Franchises}">
                                                 </ItemsControl>
                                                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
-                                                    <Button Command="{Binding SelectFranchiseCommand}" Content="Add" />
+                                                    <Button Command="{Binding ShowSelectFranchiseCommand}" Content="Add" />
                                                     <Button Command="{Binding DeleteSelectedFranchiseCommand}"
                                                             Content="Delete" />
                                                 </StackPanel>

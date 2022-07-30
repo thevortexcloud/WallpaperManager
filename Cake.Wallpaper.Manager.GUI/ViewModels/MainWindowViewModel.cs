@@ -33,6 +33,8 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// </summary>
         private readonly IWallpaperRepository _wallpaperRepository;
 
+        private readonly IEnumerable<IProgramProvider> _programProviders;
+
         /// <summary>
         /// A shared semaphore to prevent race conditions during save and data retrieval operations
         /// </summary>
@@ -89,9 +91,6 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// </summary>
         public string PageInfoString => $"{CurrentPage}/{TotalPages}";
 
-        public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> NextImagePage { get; }
-        public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> PreviousImagePage { get; }
-        public ReactiveCommand<Unit, Unit> Refresh { get; }
 
         /// <summary>
         /// Returns a list of images that the user can see and interact with
@@ -116,107 +115,132 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
 
         public Interaction<Unit, FranchiseSelectWindowViewModel?> ShowFranchiseSelectDialog { get; } = new Interaction<Unit, FranchiseSelectWindowViewModel>();
         public Interaction<Unit, PersonSelectWindowViewModel?> ShowPersonSelectDialog { get; } = new Interaction<Unit, PersonSelectWindowViewModel>();
+
+        public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> NextImagePage { get; }
+        public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> PreviousImagePage { get; }
+        public ReactiveCommand<Unit, Unit> Refresh { get; }
         public ReactiveCommand<Unit, IEnumerable<PersonViewModel>?> SelectPersonCommand { get; }
         public ReactiveCommand<Unit, Unit> DeletePersonCommand { get; }
-        public ReactiveCommand<Unit, IEnumerable<FranchiseSelectListItemViewModel>?> SelectFranchiseCommand { get; }
+        public ReactiveCommand<Unit, IEnumerable<FranchiseSelectListItemViewModel>?> ShowSelectFranchiseCommand { get; }
         public ReactiveCommand<Unit, Unit> DeleteSelectedFranchiseCommand { get; }
         public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+
         public ObservableCollection<MenuItem> ProgramProviders { get; } = new ObservableCollection<MenuItem>();
         #endregion
 
         #region Public constructor
         public MainWindowViewModel(IWallpaperRepository wallpaperRepository, IEnumerable<IProgramProvider> programProviders) {
+            //Subscribe to the main search box
+            this.WhenAnyValue(x => x.SearchText)
+                .Throttle(TimeSpan.FromMilliseconds(400))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(this.DoSearch);
+
+            this.WhenAnyValue(o => o.SelectedImage)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(this.SelectedImageChanged);
+
+            //Set up our button handlers
+            this.NextImagePage = ReactiveCommand.CreateFromTask(NextPageAsync);
+            this.PreviousImagePage = ReactiveCommand.CreateFromTask(PreviousPageAsync);
+            this.Refresh = ReactiveCommand.CreateFromTask(RefreshAsync);
+            this.SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
+            this.DeleteSelectedFranchiseCommand = ReactiveCommand.CreateFromTask(DeleteSelectedFranchiseAsync);
+            this.ShowSelectFranchiseCommand = ReactiveCommand.CreateFromTask(ShowSelectFranchiseAsync);
+            this.SelectPersonCommand = ReactiveCommand.CreateFromTask(ShowSelectPersonAsync);
+            this.DeletePersonCommand = ReactiveCommand.CreateFromTask(DeletePersonAsync);
+
+            this._wallpaperRepository = wallpaperRepository;
+            this._programProviders = programProviders;
+        }
+        #endregion
+
+        #region Private methods
+        /// <summary>
+        /// Attempts to remove the currently selected people from the selected wallpaper
+        /// </summary>
+        private async Task DeletePersonAsync() {
             try {
-                this.CreateProgramProviderMenuItems(programProviders);
-                //Subscribe to the main search box
-                this.WhenAnyValue(x => x.SearchText)
-                    .Throttle(TimeSpan.FromMilliseconds(400))
-                    .ObserveOn(RxApp.MainThreadScheduler)
-                    .Subscribe(this.DoSearch);
-
-                this.WhenAnyValue(o => o.SelectedImage)
-                    .ObserveOn(RxApp.MainThreadScheduler)
-                    .Subscribe(this.SelectedImageChanged);
-
-                //Set up our button handlers
-                this.NextImagePage = ReactiveCommand.CreateFromTask(NextPageAsync);
-                this.PreviousImagePage = ReactiveCommand.CreateFromTask(PreviousPageAsync);
-                this.Refresh = ReactiveCommand.CreateFromTask(RefreshAsync);
-                this.SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
-                this.DeleteSelectedFranchiseCommand = ReactiveCommand.CreateFromTask(async () => {
-                    try {
-                        if (this.SelectedImage is null || !(this.SelectedImage.Franchises?.Any() ?? false)) {
-                            return;
-                        }
-
-                        //Find every selected franchise
-                        var selectedFranchises = this.SelectedImage.Franchises.Where(o => o.Selected).ToList();
-                        //Now remove them from the list, this will get saved properly when the user hits save
-                        this.SelectedImage.Franchises.RemoveMany(selectedFranchises);
-                    } catch (Exception ex) {
-                        await Common.ShowExceptionMessageBoxAsync("There was a problem removing a franchise", ex);
-                    }
-                });
-
-                this.SelectFranchiseCommand = ReactiveCommand.CreateFromTask(async () => {
-                    //var store = new MainWindowViewModel();
-
-                    var result = await ShowFranchiseSelectDialog?.Handle(Unit.Default);
-                    var franchises = result?.SelectedFranchiseSelectListItemViewModels?.AsEnumerable();
-                    if (franchises != null) {
-                        this.SelectedImage?.Franchises?.AddRange(franchises);
-                        return franchises;
-                    }
-
-                    return null;
-                });
-
-                this.SelectPersonCommand = ReactiveCommand.CreateFromTask(async () => {
-                    //Can't do anything if nothing is selected
-                    if (this.SelectedImage is null) {
-                        return null;
-                    }
-
-                    var result = await ShowPersonSelectDialog?.Handle(Unit.Default);
-                    var franchises = (IEnumerable<PersonViewModel>) result?.SelectedPeople;
-                    if (franchises != null) {
-                        this.SelectedImage?.People?.AddRange(franchises);
-                        return franchises;
-                    }
-
-                    return null;
-                });
-
-            this.DeletePersonCommand = ReactiveCommand.Create(() => {
                 //Can't do anything if nothing is selected
                 if (this.SelectedImage is null) {
                     return;
                 }
 
-                    //Just do a simple remove from the people list. the save will fix everything up when it hits the storage
-                    this.SelectedImage.People.RemoveMany(this.SelectedImage.SelectedPeople);
-                });
-                this._wallpaperRepository = wallpaperRepository;
+                //Just do a simple remove from the people list. the save will fix everything up when it hits the storage
+                this.SelectedImage.People.RemoveMany(this.SelectedImage.SelectedPeople);
             } catch (Exception ex) {
-                Common.ShowExceptionMessageBoxAsync("There was a problem initialising the main window", ex);
+                await Common.ShowExceptionMessageBoxAsync("There was a problem removing the selected people from the selected image", ex);
             }
         }
-        #endregion
 
-        #region Private methods
-        private void CreateProgramProviderMenuItems(IEnumerable<IProgramProvider> providers) {
-            foreach (var provider in providers) {
-                var menuitem = new MenuItem() {
-                    Header = provider.DisplayName,
-                    Command = ReactiveCommand.Create(() => {
-                        if (this.SelectedImage is null) {
-                            return;
-                        }
+        /// <summary>
+        /// Opens the select person dialogue window and returns a list of selected people
+        /// </summary>
+        /// <returns>The list of people the user selected</returns>
+        private async Task<IEnumerable<PersonViewModel>?> ShowSelectPersonAsync() {
+            try {
+                //Can't do anything if nothing is selected
+                if (this.SelectedImage is null) {
+                    return null;
+                }
 
-                        provider.OpenWallpaperInProgram(this.SelectedImage.ConvertToWallpaper());
-                    })
-                };
-                this.ProgramProviders.Add(menuitem);
+                var result = await this.ShowPersonSelectDialog?.Handle(Unit.Default);
+                var people = (IEnumerable<PersonViewModel>?) result?.SelectedPeople;
+                //If we have any results back from the dialogue, show add it to the list
+                if (people != null) {
+                    this.SelectedImage?.People?.AddRange(people);
+                    return people;
+                }
+
+                //If we get nothing back, return null
+                return null;
+            } catch (Exception ex) {
+                await Common.ShowExceptionMessageBoxAsync("There was a problem showing the select person dialogue", ex);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Shows the select franchise dialogue async and returns a list of selected franchises
+        /// </summary>
+        /// <returns>The list of franchises the user selected</returns>
+        private async Task<IEnumerable<FranchiseSelectListItemViewModel>?> ShowSelectFranchiseAsync() {
+            try {
+                //Can't do anything if nothing is selected
+                if (this.SelectedImage is null) {
+                    return null;
+                }
+
+                var result = await this.ShowFranchiseSelectDialog?.Handle(Unit.Default);
+                var franchises = result?.SelectedFranchiseSelectListItemViewModels;
+                if (franchises != null) {
+                    this.SelectedImage?.Franchises?.AddRange(franchises);
+                    return franchises;
+                }
+
+                return null;
+            } catch (Exception ex) {
+                await Common.ShowExceptionMessageBoxAsync("There was a problem showing the select franchise window", ex);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Deletes the selected franchises from the selected wallpaper
+        /// </summary>
+        private async Task DeleteSelectedFranchiseAsync() {
+            try {
+                //Make sure the user has something selected
+                if (this.SelectedImage is null || !(this.SelectedImage.Franchises?.Any() ?? false)) {
+                    return;
+                }
+
+                //Find every selected franchise
+                var selectedFranchises = this.SelectedImage.Franchises.Where(o => o.Selected).ToList();
+                //Now remove them from the list, this will get saved properly when the user hits save
+                this.SelectedImage.Franchises.RemoveMany(selectedFranchises);
+            } catch (Exception ex) {
+                await Common.ShowExceptionMessageBoxAsync("There was a problem removing a franchise", ex);
             }
         }
 
@@ -246,54 +270,69 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// Refreshes the current page
         /// </summary>
         private async Task RefreshAsync() {
-            if (IsLoadingImages) {
-                this._cancellationTokenSource?.Cancel();
+            try {
+                if (IsLoadingImages) {
+                    this._cancellationTokenSource?.Cancel();
+                }
+
+                _cancellationTokenSource = new CancellationTokenSource();
+                var token = this._cancellationTokenSource.Token;
+
+                await this.HandleSearchTerm(this.SearchText);
+                await this.ChangePageAsync(null, token);
+            } catch (Exception ex) {
+                await Common.ShowExceptionMessageBoxAsync("There was a problem refreshing", ex);
             }
-
-            _cancellationTokenSource = new CancellationTokenSource();
-            var token = this._cancellationTokenSource.Token;
-
-            await this.HandleSearchTerm(this.SearchText);
-            await this.ChangePageAsync(null, token);
         }
 
+        private async void SelectedImageChanged(ImageItemViewModel? model) {
+            try {
+                if (model is null) {
+                    return;
+                }
 
-        public async void SelectedImageChanged(ImageItemViewModel? model) {
-            if (model is null) {
-                return;
+                //TODO: CANCEL THIS WHEN WE NEED TO
+                var token = new CancellationToken();
+                await model.LoadBigImageAsync(token);
+            } catch (Exception ex) {
+                await Common.ShowExceptionMessageBoxAsync("There was a problem loading the big image preview", ex);
             }
-
-            //TODO: CANCEL THIS WHEN WE NEED TO
-            var token = new CancellationToken();
-            await model.LoadBigImageAsync(token);
         }
 
         /// <summary>
         /// Advances the current image list to the next page
         /// </summary>
         private async Task NextPageAsync() {
-            if (IsLoadingImages) {
-                this._cancellationTokenSource.Cancel();
+            try {
+                if (IsLoadingImages) {
+                    this._cancellationTokenSource.Cancel();
+                }
+
+                _cancellationTokenSource = new CancellationTokenSource();
+                var token = this._cancellationTokenSource.Token;
+
+                await this.ChangePageAsync(true, token);
+            } catch (Exception ex) {
+                await Common.ShowExceptionMessageBoxAsync("There was a problem loading the next page", ex);
             }
-
-            _cancellationTokenSource = new CancellationTokenSource();
-            var token = this._cancellationTokenSource.Token;
-
-            await this.ChangePageAsync(true, token);
         }
 
         /// <summary>
         /// Advances the current image list to the previous page
         /// </summary>
         private async Task PreviousPageAsync() {
-            if (IsLoadingImages) {
-                this._cancellationTokenSource.Cancel();
+            try {
+                if (IsLoadingImages) {
+                    this._cancellationTokenSource.Cancel();
+                }
+
+                _cancellationTokenSource = new CancellationTokenSource();
+                var token = this._cancellationTokenSource.Token;
+
+                await this.ChangePageAsync(false, token);
+            } catch (Exception ex) {
+                await Common.ShowExceptionMessageBoxAsync("There was a problem loading the previous page", ex);
             }
-
-            _cancellationTokenSource = new CancellationTokenSource();
-            var token = this._cancellationTokenSource.Token;
-
-            await this.ChangePageAsync(false, token);
         }
 
         /// <summary>
@@ -345,6 +384,12 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             }
         }
 
+        /// <summary>
+        /// Sets the page to the given page number
+        /// </summary>
+        /// <param name="pageNumber">The page number to set the active page to</param>
+        /// <param name="allowRefresh">A value indicating if the current page is allowed to be reloaded from scratch</param>
+        /// <param name="token">A cancellation token for cancelling the page change</param>
         private async Task SetPageAsync(int pageNumber, bool allowRefresh, CancellationToken token) {
             //TODO:THIS IS NOT GUARANTEED TO RELEASE THE SEMAPHORE. EG IF AN ERROR HAPPENS
             try {
@@ -455,6 +500,45 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 await this.SetPageAsync(forward.Value ? this.CurrentPage + 1 : this.CurrentPage - 1, false, token);
             } else {
                 await this.SetPageAsync(this.CurrentPage, true, token);
+            }
+        }
+        #endregion
+
+        #region Public methods
+        /// <summary>
+        /// Attempts to add all currently <see cref="IProgramProvider"/> to the context menu
+        /// </summary>
+        /// <exception cref="ApplicationException">Thrown if this method is called more than once after the context menu has been populated</exception>
+        public async Task CreateProgramProviderMenuItemsAsync() {
+            try {
+                //We only ever need to run this once, and running it multiple times should be considered to be an error state
+                if (this.ProgramProviders.Any()) {
+                    throw new ApplicationException("Program providers can not be registered multiple times");
+                }
+
+                foreach (var provider in this._programProviders) {
+                    try {
+                        var menuitem = new MenuItem() {
+                            Header = provider.DisplayName,
+                            Command = ReactiveCommand.CreateFromTask(async () => {
+                                try {
+                                    if (this.SelectedImage is null) {
+                                        return;
+                                    }
+
+                                    provider.OpenWallpaperInProgram(this.SelectedImage.ConvertToWallpaper());
+                                } catch (Exception ex) {
+                                    await Common.ShowExceptionMessageBoxAsync($"There was a problem opening the wallpaper in {provider.DisplayName}", ex);
+                                }
+                            })
+                        };
+                        this.ProgramProviders.Add(menuitem);
+                    } catch (Exception ex) {
+                        await Common.ShowExceptionMessageBoxAsync($"There was a problem adding the program provider {provider.DisplayName}", ex);
+                    }
+                }
+            } catch (Exception ex) {
+                await Common.ShowExceptionMessageBoxAsync($"There was a problem adding  program providers", ex);
             }
         }
         #endregion
