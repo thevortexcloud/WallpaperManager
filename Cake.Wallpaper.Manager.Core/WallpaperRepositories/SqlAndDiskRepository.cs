@@ -54,7 +54,7 @@ public class SqlAndDiskRepository : Interfaces.IWallpaperRepository {
             foreach (var file in new DirectoryInfo(_wallpaperPath).EnumerateFiles($"*{searchTerm}*",
                          new EnumerationOptions() {
                              MatchCasing = MatchCasing.CaseInsensitive,
-                         }).Where(o => !list.Select(p => p.FileName).Contains(o.Name))) {
+                         }).ExceptBy(wallpapers.Select(o => o.FileName).ToEnumerable(), o => o.Name)) {
                 yield return new Models.Wallpaper() {
                     FilePath = file.FullName,
                     Name = file.Name,

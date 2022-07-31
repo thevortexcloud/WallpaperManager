@@ -163,10 +163,10 @@ WHERE PF.Person = @person"
             wallpapercmd = new SqliteCommand() {
                 CommandText = @"
 SELECT wallpapers.id,wallpapers.Name,DateAdded, Author, FileName, Source FROM Wallpapers wallpapers
-INNER JOIN WallpaperPeople WP on Wallpapers.id = WP.WallpaperID
-INNER JOIN People P on WP.PersonID = P.Id
+LEFT OUTER JOIN WallpaperPeople WP on Wallpapers.id = WP.WallpaperID
+LEFT OUTER JOIN People P on WP.PersonID = P.Id
 WHERE wallpapers.name LIKE '%' || @name ||'%' OR wallpapers.Filename LIKE '%' || @name ||'%' OR p.name LIKE '%'|| @name || '%'
-GROUP BY  wallpapers.id, wallpapers.Name, DateAdded, Author, FileName, Source",
+GROUP BY wallpapers.id, wallpapers.Name, DateAdded, Author, FileName, Source",
             };
             wallpapercmd.Parameters.Add("@name", SqliteType.Text).Value = searchTerm;
         }
