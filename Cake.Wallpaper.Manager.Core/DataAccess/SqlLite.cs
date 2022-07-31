@@ -129,25 +129,6 @@ WHERE PF.Person = @person"
         return this.ParseFranchiseListQuery(cmd);
     }
 
-    private async IAsyncEnumerable<Franchise> ParseFranchiseListQuery(SqliteCommand cmd) {
-        using (var rdr = await this.ExecuteDataReaderAsync(cmd)) {
-            if (rdr.HasRows) {
-                int idOrdinal = rdr.GetOrdinal("id"),
-                    parentIDOrdinal = rdr.GetOrdinal("parentid"),
-                    nameOrdinal = rdr.GetOrdinal("name"),
-                    levelOrdinal = rdr.GetOrdinal("level");
-
-                while (await rdr.ReadAsync()) {
-                    yield return new Franchise() {
-                        Name = rdr.GetString(nameOrdinal),
-                        ID = rdr.GetInt32(idOrdinal),
-                        ParentID = await rdr.IsDBNullAsync(parentIDOrdinal) ? null : rdr.GetInt32(parentIDOrdinal),
-                        Depth = rdr.GetInt32(levelOrdinal)
-                    };
-                }
-            }
-        }
-    }
 
     /// <summary>
     /// Retrieves a list of all wallpapers
@@ -221,6 +202,7 @@ WHERE WallpaperID = @wallpaper"
                         }
                     }
 
+                    //TODO: Fix the depth here so it shows the correct depth for the franchise
                     SqliteCommand wallpaperfranchisecmd = new SqliteCommand() {
                         CommandText = @"SELECT Id, Name, ParentId, 0 as level FROM WallpaperFranchise
 INNER JOIN Franchise F on F.Id = WallpaperFranchise.FranchiseID
@@ -241,7 +223,7 @@ WHERE WallpaperID = @wallpaper"
     /// </summary>
     /// <returns>A list of all wallpapers contained in the database</returns>
     public IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync() {
-        return this.RetrieveWallpapersAsync(null!);
+        return this.RetrieveWallpapersAsync(null);
     }
 
     /// <summary>
@@ -327,6 +309,67 @@ GROUP BY people.Id, people.Name, PrimaryFranchise"
         }
     }
 
+
+    /// <summary>
+    /// Attempts to insert or update the given wallpaper transactionally with all related linked data
+    /// </summary>
+    /// <param name="wallpaper">The wallpaper to attempt to insert</param>
+    public async Task SaveWallpaperAsync(Models.Wallpaper wallpaper) {
+        //Create a transaction since we are going to be doing a lot of things that could fail
+        using (var tran = await this.CreateTransactionAsync()) {
+            try {
+                //Update/insert the wallpaper header data
+                var createdID = await this.CreateOrInsertWallpaperHeaderAsync(wallpaper, tran);
+                //If we have a different id (id of 0 is for new wallpapers) we need to update the references we have since it's used for all the links we are about to do
+                //Luckily records make this very simple for us
+                if (createdID != wallpaper.ID) {
+                    wallpaper = wallpaper with {
+                        ID = createdID
+                    };
+                }
+
+                //Create the links in the people table
+                await this.CreateOrUpdateWallpaperPeopleLinkAsync(wallpaper, tran);
+                //Create the links in the franchise tables
+                await this.CreateOrUpdateWallpaperFranchisesLinkAsync(wallpaper, tran);
+
+                //If everything worked, commit the transaction
+                await tran.CommitAsync();
+            } catch {
+                //If we get any errors at all, abort and rethrow
+                await tran.RollbackAsync();
+                throw;
+            }
+        }
+    }
+    #endregion
+
+    #region Private methods
+    /// <summary>
+    /// Attempts to execute the given command and parse a list of franchises
+    /// </summary>
+    /// <param name="cmd">The command to execute</param>
+    /// <returns>A list of franchises found</returns>
+    private async IAsyncEnumerable<Franchise> ParseFranchiseListQuery(SqliteCommand cmd) {
+        using (var rdr = await this.ExecuteDataReaderAsync(cmd)) {
+            if (rdr.HasRows) {
+                int idOrdinal = rdr.GetOrdinal("id"),
+                    parentIDOrdinal = rdr.GetOrdinal("parentid"),
+                    nameOrdinal = rdr.GetOrdinal("name"),
+                    levelOrdinal = rdr.GetOrdinal("level");
+
+                while (await rdr.ReadAsync()) {
+                    yield return new Franchise() {
+                        Name = rdr.GetString(nameOrdinal),
+                        ID = rdr.GetInt32(idOrdinal),
+                        ParentID = await rdr.IsDBNullAsync(parentIDOrdinal) ? null : rdr.GetInt32(parentIDOrdinal),
+                        Depth = rdr.GetInt32(levelOrdinal)
+                    };
+                }
+            }
+        }
+    }
+
     /// <summary>
     ///  Attempts to parse the given command and load instantiate a person object with all related data
     /// </summary>
@@ -385,41 +428,6 @@ WHERE PF.Person = @person",
         }
     }
 
-    /// <summary>
-    /// Attempts to insert or update the given wallpaper transactionally with all related linked data
-    /// </summary>
-    /// <param name="wallpaper">The wallpaper to attempt to insert</param>
-    public async Task SaveWallpaperAsync(Models.Wallpaper wallpaper) {
-        //Create a transaction since we are going to be doing a lot of things that could fail
-        using (var tran = await this.CreateTransactionAsync()) {
-            try {
-                //Update/insert the wallpaper header data
-                var createdID = await this.CreateOrInsertWallpaperHeaderAsync(wallpaper, tran);
-                //If we have a different id (id of 0 is for new wallpapers) we need to update the references we have since it's used for all the links we are about to do
-                //Luckily records make this very simple for us
-                if (createdID != wallpaper.ID) {
-                    wallpaper = wallpaper with {
-                        ID = createdID
-                    };
-                }
-
-                //Create the links in the people table
-                await this.CreateOrUpdateWallpaperPeopleLinkAsync(wallpaper, tran);
-                //Create the links in the franchise tables
-                await this.CreateOrUpdateWallpaperFranchisesLinkAsync(wallpaper, tran);
-
-                //If everything worked, commit the transaction
-                await tran.CommitAsync();
-            } catch {
-                //If we get any errors at all, abort and rethrow
-                await tran.RollbackAsync();
-                throw;
-            }
-        }
-    }
-    #endregion
-
-    #region Private methods
     /// <summary>
     /// Inserts a person into the database, or updates them if they already exist
     /// </summary>
