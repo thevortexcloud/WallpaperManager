@@ -231,4 +231,82 @@ public class FranchiseManagementViewModelTests {
         //Check data was added
         Assert.NotEmpty(model.Franchises);
     }
+
+    [Fact]
+    public void NewFranchiseGetsCreated() {
+        new TestScheduler().With((scheduler) => {
+            var repoMock = new Mock<IWallpaperRepository>();
+            var model = new FranchiseManagementViewModel(repoMock.Object);
+
+            //Ensure we are in a clean initial state
+            Assert.Null(model.SearchText);
+            Assert.Empty(model.Franchises);
+            Assert.Null(model.SelectedFranchise);
+
+            model.NewFranchise.Execute().Subscribe(scheduler.CreateObserver<Unit>());
+
+            //Check data was added
+            Assert.NotEmpty(model.Franchises);
+        });
+    }
+
+    [Fact]
+    public void DeleteSelectedFranchise() {
+        new TestScheduler().WithAsync(async (scheduler) => {
+            var repoMock = new Mock<IWallpaperRepository>();
+            var model = new FranchiseManagementViewModel(repoMock.Object);
+
+            //Ensure we are in a clean initial state
+            Assert.Null(model.SearchText);
+            Assert.Empty(model.Franchises);
+            Assert.Null(model.SelectedFranchise);
+
+            model.Franchises.Add(new FranchiseSelectListItemViewModel(new Franchise(), true));
+
+            //This won't do anything unless we can be sure we have something selected
+            Assert.True(model.Franchises.Any(o => o.Selected));
+
+            model.DeleteFranchise.Execute().Subscribe(scheduler.CreateObserver<Unit>());
+
+            //Check data was removed
+            Assert.Empty(model.Franchises);
+            repoMock.Verify(o => o.DeleteFranchiseAsync(It.IsAny<int>()), Times.Once);
+
+            //Add a non selected franchise so we can make sure we are only deleting selected stuff
+            model.Franchises.Add(new FranchiseSelectListItemViewModel(new Franchise(), false));
+
+            model.DeleteFranchise.Execute().Subscribe(scheduler.CreateObserver<Unit>());
+
+            //Check data was NOT removed since we are verifying that franchises that are not selected do not get removed
+            Assert.NotEmpty(model.Franchises);
+            //At this point this method should have been still only been called once
+            repoMock.Verify(o => o.DeleteFranchiseAsync(It.IsAny<int>()), Times.Once);
+        });
+    }
+
+    [Fact]
+    public async void AttemptToSaveFranchises() {
+        new TestScheduler().With((scheduler) => {
+            var repoMock = new Mock<IWallpaperRepository>();
+
+            repoMock.Setup(o => o.SaveFranchiseInfosAsync(It.IsAny<IEnumerable<Franchise>>()))
+                .Returns(Task.CompletedTask);
+
+            var model = new FranchiseManagementViewModel(repoMock.Object);
+
+            //Ensure we are in a clean initial state
+            Assert.Null(model.SearchText);
+            Assert.Empty(model.Franchises);
+            Assert.Null(model.SelectedFranchise);
+
+            var franchise = new FranchiseSelectListItemViewModel(new Franchise(), false);
+            model.Franchises.Add(franchise);
+
+
+            model.SaveFranchises.Execute().Subscribe(scheduler.CreateObserver<Unit>());
+
+            repoMock.Verify(o => o.SaveFranchiseInfoAsync(It.IsAny<Franchise>()), Times.Never);
+            repoMock.Verify(o => o.SaveFranchiseInfosAsync(It.IsAny<IEnumerable<Franchise>>()), Times.Once);
+        });
+    }
 }

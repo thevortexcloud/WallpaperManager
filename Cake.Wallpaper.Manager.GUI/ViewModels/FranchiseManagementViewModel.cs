@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using Cake.Wallpaper.Manager.Core.Models;
+using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using Splat;
@@ -48,6 +49,11 @@ public sealed class FranchiseManagementViewModel : ViewModelBase {
     public ReactiveCommand<Unit, Unit> NewFranchise { get; }
 
     /// <summary>
+    /// Returns a command which allows for a user to delete the selected franchise
+    /// </summary>
+    public ReactiveCommand<Unit, Unit> DeleteFranchise { get; }
+
+    /// <summary>
     /// Returns a command which allows for a user to save all franchises
     /// </summary>
     public ReactiveCommand<Unit, Unit> SaveFranchises { get; }
@@ -67,6 +73,7 @@ public sealed class FranchiseManagementViewModel : ViewModelBase {
         SetParent = ReactiveCommand.Create(SetParentHandler);
         NewFranchise = ReactiveCommand.Create(NewFranchiseHandler);
         SaveFranchises = ReactiveCommand.Create(SaveFranchisesHandler);
+        DeleteFranchise = ReactiveCommand.CreateFromTask(DeleteFranchisesHandlerAsync);
 
         this.WhenAnyValue(x => x.SearchText)
             .Throttle(TimeSpan.FromMilliseconds(600))
@@ -76,6 +83,25 @@ public sealed class FranchiseManagementViewModel : ViewModelBase {
     #endregion
 
     #region Private methods
+    /// <summary>
+    /// Attempts to delete all selected franchises from the repository
+    /// </summary>
+    private async Task DeleteFranchisesHandlerAsync() {
+        try {
+            var toDelete = this.Franchises.Where(o => o.Selected).ToList();
+            foreach (var franchise in toDelete) {
+                await this._wallpaperRepository.DeleteFranchiseAsync(franchise.ID);
+            }
+
+//Just remove from the list if everything passes without error
+            this.Franchises.RemoveMany(toDelete);
+        } catch (Exception ex) {
+            await Common.ShowExceptionMessageBoxAsync("There was a problem deleting the franchise", ex);
+            //However if we do get an error we need to reload since this could have failed part way through
+            await this.LoadDataAsync(this.SearchText);
+        }
+    }
+
     /// <summary>
     /// Attempts to perform a search operation with the given search term
     /// </summary>

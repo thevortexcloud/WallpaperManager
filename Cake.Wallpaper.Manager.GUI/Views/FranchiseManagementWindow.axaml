@@ -13,7 +13,7 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Command="{Binding SaveFranchises}" Header="Save" />
             <MenuItem Command="{Binding NewFranchise}" Header="New" />
-            <MenuItem Header="Delete" />
+            <MenuItem Command="{Binding DeleteFranchise}" Header="Delete" />
         </Menu>
         <Grid ColumnDefinitions="*" RowDefinitions="auto *" DockPanel.Dock="Left" VerticalAlignment="Stretch"
               MinWidth="500">

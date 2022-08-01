@@ -342,6 +342,20 @@ GROUP BY people.Id, people.Name, PrimaryFranchise"
             }
         }
     }
+
+    /// <summary>
+    /// Deletes the given franchise from the franchise table
+    /// </summary>
+    /// <param name="franchiseID">The franchise to delete</param>
+    /// <returns></returns>
+    public Task DeleteFranchiseAsync(int franchiseID) {
+        SqliteCommand cmd = new SqliteCommand() {
+            CommandText = "DELETE FROM Franchise WHERE Id = @id",
+            CommandType = CommandType.Text,
+        };
+        cmd.Parameters.Add("@id", SqliteType.Integer).Value = franchiseID;
+        return this.ExecuteNonQueryAsync(cmd);
+    }
     #endregion
 
     #region Private methods
