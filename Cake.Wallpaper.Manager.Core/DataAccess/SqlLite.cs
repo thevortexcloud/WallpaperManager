@@ -62,7 +62,7 @@ internal sealed class SqlLite : SqlLiteBase {
     /// <param name="personID">The person to search franchises for</param>
     /// <returns>A filtered list of franchises for the person</returns>
     /// <remarks>This does NOT retrieve the full franchise tree for every franchises</remarks>
-    public IAsyncEnumerable<Franchise> RetrieveFranchisesForPerson(int personID) {
+    public IAsyncEnumerable<Franchise> RetrieveFranchisesForPersonAsync(int personID) {
         SqliteCommand cmd = new SqliteCommand() {
             CommandText = @"SELECT fran.id AS id, fran.name as NAME, fran.parentid AS ParentId, 0 AS level FROM Franchise fran
 INNER JOIN PeopleFranchises PF on fran.Id = PF.Franchise
@@ -78,7 +78,7 @@ WHERE PF.Person = @person"
     /// Retrieves a list of ALL franchises, complete with correct nesting of child franchises
     /// </summary>
     /// <returns>A list of all top level and child franchises</returns>
-    public IAsyncEnumerable<Franchise> RetrieveFranchises() {
+    public IAsyncEnumerable<Franchise> RetrieveFranchisesAsync() {
         SqliteCommand cmd = new SqliteCommand() {
             //Recursive Common Table Expression can find a parent and all children
             CommandText = @"WITH RECURSIVE under_part(id, name, parentid, level) AS (
@@ -104,7 +104,11 @@ WHERE PF.Person = @person"
     /// Retrieves a filtered list of franchises, complete with nesting of child franchises if the parent is included in the result
     /// </summary>
     /// <returns>A list of all top level and child franchises</returns>
-    public IAsyncEnumerable<Franchise> RetrieveFranchises(string filter) {
+    public IAsyncEnumerable<Franchise> RetrieveFranchisesAsync(string filter) {
+        if (filter is null) {
+            throw new ArgumentNullException(nameof(filter));
+        }
+
         SqliteCommand cmd = new SqliteCommand() {
             //Recursive Common Table Expression can find a parent and all children
             CommandText = @"WITH RECURSIVE under_part(id, name, parentid, level) AS (
@@ -189,7 +193,7 @@ WHERE WallpaperID = @wallpaper"
                                 var person = new Person() {
                                     ID = personrdr.GetInt32(personIDOrdinal),
                                     Name = personrdr.GetString(personNameOrdinal),
-                                    Franchises = await this.RetrieveFranchisesForPerson(personrdr.GetInt32(personIDOrdinal)).ToHashSetAsync(),
+                                    Franchises = await this.RetrieveFranchisesForPersonAsync(personrdr.GetInt32(personIDOrdinal)).ToHashSetAsync(),
                                 };
                                 //TODO: Do a join on this since we can do it entirely in the DB
                                 int? primaryfranchiseid = await personrdr.IsDBNullAsync(primaryFranchiseOrdinal) ? null : personrdr.GetInt32(primaryFranchiseOrdinal);
@@ -230,13 +234,13 @@ WHERE WallpaperID = @wallpaper"
     /// Retrieves a list of all people
     /// </summary>
     /// <returns>A list of all people that exist in the system</returns>
-    public IAsyncEnumerable<Person> RetrievePeople() {
+    public IAsyncEnumerable<Person> RetrievePeopleAsync() {
         SqliteCommand cmd = new SqliteCommand() {
             CommandText = @"SELECT Id, Name, PrimaryFranchise
 FROM People;"
         };
 
-        return this.ParseRetrievePersonCommand(cmd);
+        return this.ParseRetrievePersonCommandAsync(cmd);
     }
 
     /// <summary>
@@ -244,7 +248,7 @@ FROM People;"
     /// </summary>
     /// <param name="searchTerm">The search term to filter the results by</param>
     /// <returns>A list of all people that exist in the system</returns>
-    public IAsyncEnumerable<Person> RetrievePeople(string searchTerm) {
+    public IAsyncEnumerable<Person> RetrievePeopleAsync(string searchTerm) {
         SqliteCommand cmd = new SqliteCommand() {
             CommandText = @"SELECT people.Id, people.Name, PrimaryFranchise
 FROM People people
@@ -255,7 +259,7 @@ GROUP BY people.Id, people.Name, PrimaryFranchise"
         };
         cmd.Parameters.Add("@term", SqliteType.Text).Value = searchTerm;
 
-        return this.ParseRetrievePersonCommand(cmd);
+        return this.ParseRetrievePersonCommandAsync(cmd);
     }
 
 
@@ -300,7 +304,7 @@ GROUP BY people.Id, people.Name, PrimaryFranchise"
     public async Task InsertPersonAsync(Person person) {
         using (var tran = await this.CreateTransactionAsync()) {
             try {
-                await this.InsertPerson(person, tran);
+                await this.InsertPersonAsync(person, tran);
                 await tran.CommitAsync();
             } catch {
                 await tran.RollbackAsync();
@@ -389,7 +393,7 @@ GROUP BY people.Id, people.Name, PrimaryFranchise"
     /// </summary>
     /// <param name="cmd"></param>
     /// <returns></returns>
-    private async IAsyncEnumerable<Person> ParseRetrievePersonCommand(SqliteCommand cmd) {
+    private async IAsyncEnumerable<Person> ParseRetrievePersonCommandAsync(SqliteCommand cmd) {
         using (var rdr = await this.ExecuteDataReaderAsync(cmd)) {
             if (rdr.HasRows) {
                 int idOrdinal = rdr.GetOrdinal("Id"),
@@ -448,7 +452,7 @@ WHERE PF.Person = @person",
     /// <param name="person">The person to insert</param>
     /// <param name="transaction">The transaction to execute commands with</param>
     /// <exception cref="ArgumentNullException">Thrown when <param name="person"> is null</param></exception>
-    private async Task InsertPerson(Person person, SqliteTransaction transaction) {
+    private async Task InsertPersonAsync(Person person, SqliteTransaction transaction) {
         if (person is null) {
             throw new ArgumentNullException(nameof(person));
         }

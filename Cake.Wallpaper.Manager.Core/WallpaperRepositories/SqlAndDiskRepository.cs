@@ -67,14 +67,14 @@ public class SqlAndDiskRepository : Interfaces.IWallpaperRepository {
     public IAsyncEnumerable<Person> RetrievePeopleAsync() {
         using (DataAccess.SqlLite sqlLite = new SqlLite(_connectionString)) {
             //TODO:Check if this will cause issues? It may be possible for the database connection to close before this actually finishes.
-            return sqlLite.RetrievePeople();
+            return sqlLite.RetrievePeopleAsync();
         }
     }
 
     public IAsyncEnumerable<Person> RetrievePeopleAsync(string searchTerm) {
         using (DataAccess.SqlLite sqlLite = new SqlLite(_connectionString)) {
             //TODO:Check if this will cause issues? It may be possible for the database connection to close before this actually finishes.
-            return sqlLite.RetrievePeople(searchTerm);
+            return sqlLite.RetrievePeopleAsync(searchTerm);
         }
     }
 
@@ -86,19 +86,19 @@ public class SqlAndDiskRepository : Interfaces.IWallpaperRepository {
 
     public IAsyncEnumerable<Franchise> RetrieveFranchises() {
         using (DataAccess.SqlLite sqlLite = new SqlLite(_connectionString)) {
-            return sqlLite.RetrieveFranchises();
+            return sqlLite.RetrieveFranchisesAsync();
         }
     }
 
     public IAsyncEnumerable<Franchise> RetrieveFranchises(string searchTerm) {
         using (DataAccess.SqlLite sqlLite = new SqlLite(_connectionString)) {
-            return sqlLite.RetrieveFranchises(searchTerm);
+            return sqlLite.RetrieveFranchisesAsync(searchTerm);
         }
     }
 
     public IAsyncEnumerable<Franchise> RetrieveFranchisesForPerson(int personID) {
         using (DataAccess.SqlLite sqlLite = new SqlLite(_connectionString)) {
-            return sqlLite.RetrieveFranchisesForPerson(personID);
+            return sqlLite.RetrieveFranchisesForPersonAsync(personID);
         }
     }
 
@@ -124,6 +124,12 @@ public class SqlAndDiskRepository : Interfaces.IWallpaperRepository {
     public async Task SaveFranchiseInfosAsync(IEnumerable<Franchise> franchises) {
         await using (SqlLite sqlLite = new SqlLite(_connectionString)) {
             await sqlLite.InsertFranchiseListAsync(franchises);
+        }
+    }
+
+    public async Task DeleteFranchiseAsync(int franchiseID) {
+        await using (SqlLite sqlLite = new SqlLite(_connectionString)) {
+            await sqlLite.DeleteFranchiseAsync(franchiseID);
         }
     }
     #endregion
