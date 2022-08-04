@@ -6,7 +6,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cake.Wallpaper.Manager.Core
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cake.Wallpaper.Manager.GUI", "Cake.Wallpaper.Manager.GUI\Cake.Wallpaper.Manager.GUI.csproj", "{CC249C79-8F9E-4CA2-9488-B7A21090F4B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cake.Wallpaper.Manager.Tests.Core", "Cake.Wallpaper.Manager.Tests.Core\Cake.Wallpaper.Manager.Tests.Core.csproj", "{B3CCA3A1-0A96-4D56-9756-E654E810DF7B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cake.Wallpaper.Manager.Tests", "Cake.Wallpaper.Manager.Tests\Cake.Wallpaper.Manager.Tests.csproj", "{B3CCA3A1-0A96-4D56-9756-E654E810DF7B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,10 +14,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B98DBBA4-C125-465A-9FEC-92B4457D5176}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B98DBBA4-C125-465A-9FEC-92B4457D5176}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B98DBBA4-C125-465A-9FEC-92B4457D5176}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B98DBBA4-C125-465A-9FEC-92B4457D5176}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7134EA50-E97C-44A9-B304-5F6718C86E6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7134EA50-E97C-44A9-B304-5F6718C86E6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7134EA50-E97C-44A9-B304-5F6718C86E6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
