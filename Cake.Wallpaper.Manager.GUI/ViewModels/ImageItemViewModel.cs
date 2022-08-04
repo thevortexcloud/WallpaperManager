@@ -191,7 +191,7 @@ public sealed class ImageItemViewModel : ViewModelBase, IDisposable {
                 if (landscape) {
                     return Bitmap.DecodeToWidth(img, size, BitmapInterpolationMode.MediumQuality);
                 } else {
-                    return Bitmap.DecodeToHeight(img, size);
+                    return Bitmap.DecodeToHeight(img, size, BitmapInterpolationMode.MediumQuality);
                 }
 
                 //          img.Seek(0, SeekOrigin.Begin);
