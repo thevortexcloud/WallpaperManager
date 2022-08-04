@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ReactiveUI;
 
 namespace Cake.Wallpaper.Manager.GUI.ViewModels {
-    public class MainWindowViewModel : ViewModelBase {
+    public class MainWindowViewModel : ViewModelBase, IActivatableViewModel {
         #region Private variables
         private string _searchText;
         private ImageItemViewModel? _selectedImage;
@@ -125,6 +125,11 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         public ReactiveCommand<Unit, Unit> DeleteSelectedFranchiseCommand { get; }
         public ReactiveCommand<Unit, Unit> SaveCommand { get; }
 
+        /// <summary>
+        /// An activator that is called when the view is initialised
+        /// </summary>
+        public ViewModelActivator Activator { get; }
+
         public ObservableCollection<MenuItem> ProgramProviders { get; } = new ObservableCollection<MenuItem>();
         #endregion
 
@@ -152,6 +157,9 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
 
             this._wallpaperRepository = wallpaperRepository;
             this._programProviders = programProviders;
+
+            this.Activator = new ViewModelActivator();
+            this.WhenActivated(async d => d(this.CreateProgramProviderMenuItemsAsync()));
         }
         #endregion
 
@@ -373,7 +381,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                     Images.Clear();
 
                     var wallpapers = string.IsNullOrWhiteSpace(term) ? this._wallpaperRepository.RetrieveWallpapersAsync() : this._wallpaperRepository.RetrieveWallpapersAsync(term);
-
+       
                     await foreach (var wallpaper in wallpapers) {
                         Images.Add(new ImageItemViewModel(wallpaper, this._wallpaperRepository));
                     }

@@ -19,7 +19,7 @@ namespace Cake.Wallpaper.Manager.GUI.Views {
             InitializeComponent();
             this.WhenActivated(d => { d(this.ViewModel!.ShowFranchiseSelectDialog.RegisterHandler(DoShowFranchiseDialogAsync)); });
             this.WhenActivated(d => d(this.ViewModel!.ShowPersonSelectDialog.RegisterHandler(DoShowPersonDialogueAsync)));
-            this.WhenActivated(d => d(this.ViewModel!.CreateProgramProviderMenuItemsAsync()));
+            //this.WhenActivated(d => d(this.ViewModel!.CreateProgramProviderMenuItemsAsync()));
         }
 
         private async Task DoShowPersonDialogueAsync(InteractionContext<Unit, PersonSelectWindowViewModel?> interactionContext) {
