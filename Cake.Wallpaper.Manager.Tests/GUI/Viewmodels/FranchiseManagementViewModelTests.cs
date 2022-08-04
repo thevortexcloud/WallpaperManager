@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using System.Threading.Tasks;
 using Cake.Wallpaper.Manager.Core.Interfaces;
 using Cake.Wallpaper.Manager.Core.Models;
 using Cake.Wallpaper.Manager.GUI.ViewModels;
@@ -37,31 +38,6 @@ public class FranchiseManagementViewModelTests {
 
         //Check data was added
         Assert.NotEmpty(model.Franchises);
-    }
-
-    public async void DoNotAttemptToLoadDataWithNullSearchTerm() {
-        var repoMock = new Mock<IWallpaperRepository>();
-        repoMock.Setup(o => o.RetrieveFranchises(It.IsAny<string>())).Returns(new List<Franchise>() {
-            new Franchise()
-        }.ToAsyncEnumerable());
-        var model = new FranchiseManagementViewModel(repoMock.Object);
-
-        //Ensure we are in a clean initial state
-        Assert.Null(model.SearchText);
-        Assert.Empty(model.Franchises);
-        Assert.Null(model.SelectedFranchise);
-
-        repoMock.Verify(o => o.RetrieveFranchises(), Times.Never);
-
-        //Now try to do a search
-        await model.LoadDataAsync(null);
-
-        //Check that the correct repo method was called
-        repoMock.Verify(o => o.RetrieveFranchises(), Times.Never);
-        repoMock.Verify(o => o.RetrieveFranchises(It.IsAny<string>()), Times.Never);
-
-        //Check data was added
-        Assert.Empty(model.Franchises);
     }
 
     [Fact]
@@ -206,8 +182,10 @@ public class FranchiseManagementViewModelTests {
     }
 
 
-    [Fact]
-    public async void AttemptToLoadData() {
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async void AttemptToLoadData(string? term) {
         var repoMock = new Mock<IWallpaperRepository>();
         repoMock.Setup(o => o.RetrieveFranchises()).Returns(new List<Franchise>() {
             new Franchise()
@@ -222,7 +200,7 @@ public class FranchiseManagementViewModelTests {
         repoMock.Verify(o => o.RetrieveFranchises(), Times.Never);
 
         //Now try to do a search
-        await model.LoadDataAsync();
+        await model.LoadDataAsync(term);
 
         //Check that the correct repo method was called
         repoMock.Verify(o => o.RetrieveFranchises(), Times.Once);
