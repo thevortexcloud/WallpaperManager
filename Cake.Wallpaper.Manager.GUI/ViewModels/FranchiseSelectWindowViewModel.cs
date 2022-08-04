@@ -62,7 +62,8 @@ public class FranchiseSelectWindowViewModel : ViewModelBase {
     public FranchiseSelectWindowViewModel(IWallpaperRepository wallpaperRepository) {
         this._wallpaperRepository = wallpaperRepository;
         //Set up our observer on the franchise list so we can be informed whenever someone checks the selected box
-        this.DbFranchisesSourceCache.Connect()
+        this.DbFranchisesSourceCache
+            .Connect()
             .ObserveOn(RxApp.MainThreadScheduler)
             .AutoRefresh(o => o.Selected) //This will not work without the auto refresh watching the specific property we want
             .Bind(out this._dbFranchises) //We have to bind or the search filtering does not cause the UI to update
@@ -88,7 +89,7 @@ public class FranchiseSelectWindowViewModel : ViewModelBase {
         await this.LoadDataAsync(this.SearchText);
     }
     #endregion
-    
+
     #region Private methods
     /// <summary>
     /// Attempts to filter the current franchise list based on the given search term
