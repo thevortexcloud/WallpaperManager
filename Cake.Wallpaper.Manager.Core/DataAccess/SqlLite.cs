@@ -14,10 +14,10 @@ internal sealed class SqlLite : SqlLiteBase {
     public Task InsertFranchiseAsync(Franchise franchise) {
         SqliteCommand cmd = new SqliteCommand() {
             CommandText = @"INSERT INTO main.Franchise (Id, Name, ParentId)
-            values (@id, @name, @parent)
+            values (@id, @Name, @parent)
             ON CONFLICT(id) DO
             UPDATE SET
-            Name = @name,
+            Name = @Name,
             ParentId = @parent
             WHERE id = @id;"
         };
