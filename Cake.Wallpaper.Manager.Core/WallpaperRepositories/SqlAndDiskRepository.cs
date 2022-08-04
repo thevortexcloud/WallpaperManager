@@ -29,7 +29,7 @@ public class SqlAndDiskRepository : Interfaces.IWallpaperRepository {
             }
 
             //Now find every wallpaper we don't know about, making sure to remove any files we have already handled
-            foreach (var file in new DirectoryInfo(_wallpaperPath).EnumerateFiles().Where(o => !wallpapers.Select(p => p.FileName).Contains(o.Name))) {
+            foreach (var file in new DirectoryInfo(_wallpaperPath).EnumerateFiles().ExceptBy(wallpapers.Select(o => o.FileName), o => o.Name)) {
                 yield return new Models.Wallpaper() {
                     FilePath = file.FullName,
                     Name = file.Name,
@@ -54,7 +54,7 @@ public class SqlAndDiskRepository : Interfaces.IWallpaperRepository {
             foreach (var file in new DirectoryInfo(_wallpaperPath).EnumerateFiles($"*{searchTerm}*",
                          new EnumerationOptions() {
                              MatchCasing = MatchCasing.CaseInsensitive,
-                         }).ExceptBy(wallpapers.Select(o => o.FileName).ToEnumerable(), o => o.Name)) {
+                         }).ExceptBy(list.Select(o => o.FileName), o => o.Name)) {
                 yield return new Models.Wallpaper() {
                     FilePath = file.FullName,
                     Name = file.Name,
