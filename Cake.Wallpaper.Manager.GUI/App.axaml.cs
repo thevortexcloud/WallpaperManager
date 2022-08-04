@@ -48,6 +48,8 @@ namespace Cake.Wallpaper.Manager.GUI {
                 serviceCollection.AddTransient<FranchiseManagementViewModel>();
 
                 serviceCollection.AddSingleton<IProgramProvider, GIMPFlatpakProgramProvider>(o => new GIMPFlatpakProgramProvider(config.WallpaperPath));
+                serviceCollection.AddSingleton<IProgramProvider, FileBrowserProgramProvider>(o => new FileBrowserProgramProvider(config.WallpaperPath));
+
                 var miResolver = new MicrosoftDependencyResolver(serviceCollection);
                 miResolver.RegisterConstant(new AvaloniaActivationForViewFetcher(), typeof(IActivationForViewFetcher));
                 miResolver.RegisterConstant(new AutoDataTemplateBindingHook(), typeof(IPropertyBindingHook));
