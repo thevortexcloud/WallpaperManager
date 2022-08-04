@@ -42,4 +42,11 @@ public interface IWallpaperRepository {
     public Task SavePersonInfoAsync(Models.Person person);
     public Task SaveFranchiseInfoAsync(Models.Franchise franchise);
     public Task SaveFranchiseInfosAsync(IEnumerable<Models.Franchise> franchise);
+
+    /// <summary>
+    /// Attempts to delete the given franchise from the repository
+    /// </summary>
+    /// <param name="franchiseID">The franchise to delete</param>
+    /// <returns></returns>
+    public Task DeleteFranchiseAsync(int franchiseID);
 }
