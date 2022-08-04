@@ -4,7 +4,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Cake.Wallpaper.Manager.Core.DataAccess;
 
-internal sealed class SqlLite : SqlLiteBase {
+public class SqlLite : SqlLiteBase {
     #region Public constructor
     public SqlLite(string connectionString) : base(connectionString) {
     }

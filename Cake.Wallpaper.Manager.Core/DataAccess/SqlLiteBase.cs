@@ -6,44 +6,75 @@ using Microsoft.Data.Sqlite;
 
 namespace Cake.Wallpaper.Manager.Core.DataAccess;
 
-internal abstract class SqlLiteBase : IDisposable, IAsyncDisposable {
+public abstract class SqlLiteBase : IDisposable, IAsyncDisposable {
     private readonly string _connectionString;
-    private SqliteConnection _connection;
+    private SqliteConnection? _connection;
 
-    public SqlLiteBase(string connectionString) {
+    private SqliteConnection? Connection {
+        get {
+            if (this._connection is null) {
+                this.OpenConnection();
+                return this._connection;
+            }
+
+            return this._connection;
+        }
+        set => this._connection = value;
+    }
+
+    protected SqlLiteBase(string connectionString) {
         this._connectionString = connectionString;
-        this._connection = new SqliteConnection(_connectionString);
+        this.Connection = new SqliteConnection(_connectionString);
     }
 
     protected async ValueTask<SqliteTransaction> CreateTransactionAsync() {
-        await this.OpenConnection();
-        return (SqliteTransaction) await this._connection.BeginTransactionAsync();
+        await this.OpenConnectionAsync();
+        return (SqliteTransaction) await this.Connection.BeginTransactionAsync();
     }
 
     protected async Task ExecuteNonQueryAsync(SqliteCommand cmd, SqliteTransaction transaction = null) {
-        await this.OpenConnection();
-        cmd.Connection = this._connection;
+        await this.OpenConnectionAsync();
+        cmd.Connection = this.Connection;
         cmd.Transaction = transaction;
         await cmd.ExecuteNonQueryAsync();
     }
 
+    protected void ExecuteNonQuery(SqliteCommand cmd, SqliteTransaction transaction = null) {
+        this.OpenConnection();
+        cmd.Connection = this.Connection;
+        cmd.Transaction = transaction;
+        cmd.ExecuteNonQuery();
+    }
 
     protected async Task<SqliteDataReader> ExecuteDataReaderAsync(SqliteCommand cmd) {
-        await this.OpenConnection();
-        cmd.Connection = this._connection;
+        await this.OpenConnectionAsync();
+        cmd.Connection = this.Connection;
         return await cmd.ExecuteReaderAsync(CommandBehavior.Default);
     }
 
-    protected async ValueTask<T> ExecuteScalerAsync<T>(SqliteCommand cmd, T defaultvalue = default) {
-        await this.OpenConnection();
-        cmd.Connection = this._connection;
+    protected SqliteDataReader ExecuteDataReader(SqliteCommand cmd) {
+        this.OpenConnection();
+        cmd.Connection = this.Connection;
+        return cmd.ExecuteReader(CommandBehavior.Default);
+    }
+
+    protected async ValueTask<T> ExecuteScalerAsync<T>(SqliteCommand cmd, T? defaultvalue = default) {
+        await this.OpenConnectionAsync();
+        cmd.Connection = this.Connection;
         var value = await cmd.ExecuteScalarAsync();
-        if (value is T) {
-            if (value is null) {
-                return defaultvalue;
-            } else {
-                return (T) value;
-            }
+        if (value is T casted) {
+            return casted;
+        }
+
+        throw new InvalidCastException("Specified cast is not valid");
+    }
+
+    protected T ExecuteScaler<T>(SqliteCommand cmd, T? defaultvalue = default) {
+        this.OpenConnection();
+        cmd.Connection = this.Connection;
+        var value = cmd.ExecuteScalar();
+        if (value is T casted) {
+            return casted;
         }
 
         throw new InvalidCastException("Specified cast is not valid");
@@ -54,21 +85,33 @@ internal abstract class SqlLiteBase : IDisposable, IAsyncDisposable {
         return this.ExecuteScalerAsync(cmd, defaultValue);
     }
 
-    private async Task OpenConnection() {
-        if (this._connection == null) {
-            this._connection = new SqliteConnection(this._connectionString);
+    private async Task OpenConnectionAsync() {
+        if (this.Connection == null) {
+            this.Connection = new SqliteConnection(this._connectionString);
         }
 
-        if (this._connection.State is ConnectionState.Closed or ConnectionState.Broken) {
-            await this._connection.OpenAsync();
+        if (this.Connection.State is ConnectionState.Closed or ConnectionState.Broken) {
+            await this.Connection.OpenAsync();
+        }
+    }
+
+    private void OpenConnection() {
+        if (this.Connection == null) {
+            this.Connection = new SqliteConnection(this._connectionString);
+        }
+
+        if (this.Connection.State is ConnectionState.Closed or ConnectionState.Broken) {
+            this.Connection.OpenAsync();
         }
     }
 
     public void Dispose() {
-        this._connection.Dispose();
+        this.Connection?.Close();
+        this.Connection?.Dispose();
     }
 
-    public ValueTask DisposeAsync() {
-        return this._connection.DisposeAsync();
+    public async ValueTask DisposeAsync() {
+        await (this._connection?.CloseAsync() ?? Task.CompletedTask);
+        await (this.Connection?.DisposeAsync() ?? ValueTask.CompletedTask);
     }
 }
