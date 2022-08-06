@@ -49,8 +49,11 @@
                         <StackPanel Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Center"
                                     Orientation="Horizontal">
                             <Button Command="{Binding PreviousImagePage}">Previous</Button>
-                            <Button HorizontalAlignment="Right" Command="{Binding NextImagePage}">Next</Button>
+                            <NumericUpDown ShowButtonSpinner="False" Value="{Binding CurrentPage}"
+                                           Text="{Binding CurrentPage}"
+                                           Maximum="{Binding TotalPages}" />
                             <Label Content="{Binding PageInfoString}" />
+                            <Button HorizontalAlignment="Right" Command="{Binding NextImagePage}">Next</Button>
                         </StackPanel>
                     </Grid>
                     <ScrollViewer HorizontalAlignment="Stretch" Grid.Column="1">
@@ -99,7 +102,8 @@
                                                               Items="{Binding SelectedImage.Franchises}">
                                                 </ItemsControl>
                                                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
-                                                    <Button Command="{Binding ShowSelectFranchiseCommand}" Content="Add" />
+                                                    <Button Command="{Binding ShowSelectFranchiseCommand}"
+                                                            Content="Add" />
                                                     <Button Command="{Binding DeleteSelectedFranchiseCommand}"
                                                             Content="Delete" />
                                                 </StackPanel>

@@ -9,13 +9,9 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using Avalonia.Media.Imaging;
-using Avalonia.ReactiveUI;
 using Cake.Wallpaper.Manager.Core.Interfaces;
-using Cake.Wallpaper.Manager.Core.WallpaperRepositories;
 using Cake.Wallpaper.Manager.GUI.ProgramProviders;
 using DynamicData;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ReactiveUI;
 
 namespace Cake.Wallpaper.Manager.GUI.ViewModels {
@@ -84,12 +80,12 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// <summary>
         /// Returns the total number of pages the user can see
         /// </summary>
-        public int TotalPages => (int) Math.Ceiling(((double?) this.Images?.Count / (double) PAGE_SIZE) ?? 0);
+        public int TotalPages => (int) Math.Ceiling((this.Images?.Count / (double) PAGE_SIZE) ?? 0);
 
         /// <summary>
         /// Returns a string showing the current page and the total number of pages
         /// </summary>
-        public string PageInfoString => $"{CurrentPage}/{TotalPages}";
+        public string PageInfoString => $"/{TotalPages}";
 
 
         /// <summary>
@@ -139,7 +135,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             this.WhenAnyValue(x => x.SearchText)
                 .Throttle(TimeSpan.FromMilliseconds(400))
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(this.DoSearch);
+                .Subscribe(this.DoSearchAsync);
 
             this.WhenAnyValue(o => o.SelectedImage)
                 .ObserveOn(RxApp.MainThreadScheduler)
@@ -160,10 +156,47 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
 
             this.Activator = new ViewModelActivator();
             this.WhenActivated(async d => d(this.CreateProgramProviderMenuItemsAsync()));
+
+            this.WhenAnyValue(o => o.CurrentPage)
+                .Throttle(TimeSpan.FromMilliseconds(1000))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(OnPageNumberChangeAsync);
         }
         #endregion
 
         #region Private methods
+        /// <summary>
+        /// Attempts to change the current page to the given value
+        /// </summary>
+        /// <param name="val">The page number to change to</param>
+        private async void OnPageNumberChangeAsync(int val) {
+            try {
+                if (val is 0) {
+                    return;
+                }
+
+                //HACK: For some reason the minimum and maximum values don't work. So we can enforce them here. My guess is there is a bug in Avalonia
+                if (val > TotalPages) {
+                    this.CurrentPage = TotalPages;
+                    return;
+                } else if (val <= 0) {
+                    this.CurrentPage = 1;
+                    return;
+                }
+
+                if (IsLoadingImages) {
+                    this._cancellationTokenSource.Cancel();
+                }
+
+                _cancellationTokenSource = new CancellationTokenSource();
+                var token = this._cancellationTokenSource.Token;
+
+                await this.SetPageAsync(val, true, token);
+            } catch (Exception exception) {
+                await Common.ShowExceptionMessageBoxAsync("There was a problem setting the page", exception);
+            }
+        }
+
         /// <summary>
         /// Attempts to remove the currently selected people from the selected wallpaper
         /// </summary>
@@ -349,7 +382,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// Handles the user's search input and cancels the loading of any pending operations
         /// </summary>
         /// <param name="term"></param>
-        private async void DoSearch(string term) {
+        private async void DoSearchAsync(string term) {
             try {
                 if (IsLoadingImages) {
                     this._cancellationTokenSource?.Cancel();
@@ -381,7 +414,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                     Images.Clear();
 
                     var wallpapers = string.IsNullOrWhiteSpace(term) ? this._wallpaperRepository.RetrieveWallpapersAsync() : this._wallpaperRepository.RetrieveWallpapersAsync(term);
-       
+
                     await foreach (var wallpaper in wallpapers) {
                         Images.Add(new ImageItemViewModel(wallpaper, this._wallpaperRepository));
                     }
