@@ -23,7 +23,7 @@ public class SqlLiteMemory : SqlLite {
     }
 
     public void ScaffoldDB() {
-        var schemaFile = new FileInfo("/home/zac/Projects/Cake.Wallpaper.Manager/Cake.Wallpaper.Manager.Core/Schema.sql");
+        var schemaFile = new FileInfo("./Schema.sql");
         if (!schemaFile.Exists) {
             throw new FileNotFoundException("Schema was not found");
         }
