@@ -5,7 +5,9 @@ using Cake.Wallpaper.Manager.Core.Interfaces;
 using Cake.Wallpaper.Manager.Core.Models;
 using Cake.Wallpaper.Manager.GUI.ViewModels;
 using Cake.Wallpaper.Manager.Tests.Core.WallpaperRepositories;
+using Microsoft.Reactive.Testing;
 using Moq;
+using ReactiveUI.Testing;
 using Xunit;
 
 namespace Cake.Wallpaper.Manager.Tests.Core.GUI.Viewmodels {
@@ -83,23 +85,25 @@ namespace Cake.Wallpaper.Manager.Tests.Core.GUI.Viewmodels {
         }
 
         [Fact]
-        public async void NullSearchFilterDoesNotLoadAnything() {
-            //Add a single person we can compare against
-            var repoMock = new Mock<IWallpaperRepository>();
+        public void NullSearchFilterDoesNotLoadAnything() {
+            new TestScheduler().With((scheduler) => {
+                //Add a single person we can compare against
+                var repoMock = new Mock<IWallpaperRepository>();
 
-            repoMock.Setup(o => o.RetrievePeopleAsync()).Returns((IAsyncEnumerable<Person>?) null);
+                repoMock.Setup(o => o.RetrievePeopleAsync()).Returns((IAsyncEnumerable<Person>?) null);
 
-            var model = new PersonSelectWindowViewModel(repoMock.Object);
-            Assert.Empty(model.People);
-            Assert.Empty(model.SelectedPeople);
+                var model = new PersonSelectWindowViewModel(repoMock.Object);
+                Assert.Empty(model.People);
+                Assert.Empty(model.SelectedPeople);
 
-            model.PersonSearchTerm = null;
+                model.PersonSearchTerm = null;
 
-            Assert.Empty(model.People);
-            Assert.Empty(model.SelectedPeople);
+                Assert.Empty(model.People);
+                Assert.Empty(model.SelectedPeople);
 
-            repoMock.Verify(o => o.RetrievePeopleAsync(It.IsAny<string>()), Times.Never);
-            repoMock.Verify(o => o.RetrievePeopleAsync(), Times.Never);
+                repoMock.Verify(o => o.RetrievePeopleAsync(It.IsAny<string>()), Times.Never);
+                repoMock.Verify(o => o.RetrievePeopleAsync(), Times.Never);
+            });
         }
 
         [Fact]
