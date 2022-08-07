@@ -32,4 +32,10 @@
       <ProjectReference Include="..\Cake.WallpaperManager.Importer\Cake.WallpaperManager.Importer.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Schema.sql">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
