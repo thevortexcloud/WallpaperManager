@@ -25,7 +25,7 @@ public class SqlLiteMemory : SqlLite {
     public void ScaffoldDB() {
         var schemaFile = new FileInfo("./Schema.sql");
         if (!schemaFile.Exists) {
-            throw new FileNotFoundException("Schema was not found");
+            throw new FileNotFoundException("Schema was not found", schemaFile.FullName);
         }
 
         string schemaText = null;
