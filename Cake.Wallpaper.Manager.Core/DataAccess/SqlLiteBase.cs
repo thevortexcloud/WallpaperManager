@@ -58,29 +58,33 @@ public abstract class SqlLiteBase : IDisposable, IAsyncDisposable {
         return cmd.ExecuteReader(CommandBehavior.Default);
     }
 
-    protected async ValueTask<T> ExecuteScalerAsync<T>(SqliteCommand cmd, T? defaultvalue = default) {
+    protected async ValueTask<T?> ExecuteScalerAsync<T>(SqliteCommand cmd, T? defaultvalue = default) {
         await this.OpenConnectionAsync();
         cmd.Connection = this.Connection;
         var value = await cmd.ExecuteScalarAsync();
-        if (value is T casted) {
+        if (value is not null && value is T casted) {
             return casted;
+        } else if (value is null) {
+            return defaultvalue;
+        } else {
+            throw new InvalidCastException("Specified cast is not valid");
         }
-
-        throw new InvalidCastException("Specified cast is not valid");
     }
 
-    protected T ExecuteScaler<T>(SqliteCommand cmd, T? defaultvalue = default) {
+    protected T? ExecuteScaler<T>(SqliteCommand cmd, T? defaultvalue = default) {
         this.OpenConnection();
         cmd.Connection = this.Connection;
         var value = cmd.ExecuteScalar();
-        if (value is T casted) {
+        if (value is not null && value is T casted) {
             return casted;
+        } else if (value is null) {
+            return defaultvalue;
+        } else {
+            throw new InvalidCastException("Specified cast is not valid");
         }
-
-        throw new InvalidCastException("Specified cast is not valid");
     }
 
-    protected ValueTask<T> ExecuteScalerAsync<T>(SqliteCommand cmd, SqliteTransaction transaction, T defaultValue = default) {
+    protected ValueTask<T?> ExecuteScalerAsync<T>(SqliteCommand cmd, SqliteTransaction transaction, T? defaultValue = default) {
         cmd.Transaction = transaction;
         return this.ExecuteScalerAsync(cmd, defaultValue);
     }
