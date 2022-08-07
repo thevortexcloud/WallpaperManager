@@ -16,58 +16,62 @@ namespace Cake.Wallpaper.Manager.Tests.Core.GUI.Viewmodels;
 public class FranchiseManagementViewModelTests {
     [Fact]
     public async void AttemptToLoadFilteredData() {
-        var repoMock = new Mock<IWallpaperRepository>();
-        repoMock.Setup(o => o.RetrieveFranchises(It.IsAny<string>())).Returns(new List<Franchise>() {
-            new Franchise()
-        }.ToAsyncEnumerable());
-        var model = new FranchiseManagementViewModel(repoMock.Object);
+        await new TestScheduler().WithAsync(async (scheduler) => {
+            var repoMock = new Mock<IWallpaperRepository>();
+            repoMock.Setup(o => o.RetrieveFranchises(It.IsAny<string>())).Returns(new List<Franchise>() {
+                new Franchise()
+            }.ToAsyncEnumerable());
+            var model = new FranchiseManagementViewModel(repoMock.Object);
 
-        //Ensure we are in a clean initial state
-        Assert.Null(model.SearchText);
-        Assert.Empty(model.Franchises);
-        Assert.Null(model.SelectedFranchise);
+            //Ensure we are in a clean initial state
+            Assert.Null(model.SearchText);
+            Assert.Empty(model.Franchises);
+            Assert.Null(model.SelectedFranchise);
 
-        repoMock.Verify(o => o.RetrieveFranchises(), Times.Never);
+            repoMock.Verify(o => o.RetrieveFranchises(), Times.Never);
 
-        //Now try to do a search
-        await model.LoadDataAsync("Random search data");
+            //Now try to do a search
+            await model.LoadDataAsync("Random search data");
 
-        //Check that the correct repo method was called
-        repoMock.Verify(o => o.RetrieveFranchises(), Times.Never);
-        repoMock.Verify(o => o.RetrieveFranchises(It.IsAny<string>()), Times.Once);
+            //Check that the correct repo method was called
+            repoMock.Verify(o => o.RetrieveFranchises(), Times.Never);
+            repoMock.Verify(o => o.RetrieveFranchises(It.IsAny<string>()), Times.Once);
 
-        //Check data was added
-        Assert.NotEmpty(model.Franchises);
+            //Check data was added
+            Assert.NotEmpty(model.Franchises);
+        });
     }
 
     [Fact]
-    public async void RepoFranchiseListIsNullOrEmpty() {
-        var repoMock = new Mock<IWallpaperRepository>();
-        //Set this method up to return null
-        repoMock.Setup(o => o.RetrieveFranchises(It.IsAny<string>())).Returns((IAsyncEnumerable<Franchise>?) null!);
-        var model = new FranchiseManagementViewModel(repoMock.Object);
-        //Verify we are empty before we start
-        Assert.Empty(model.Franchises);
+    public async void LoadEmptyRepoFranchiseList() {
+        await new TestScheduler().WithAsync(async (scheduler) => {
+            var repoMock = new Mock<IWallpaperRepository>();
+            //Set this method up to return null
+            repoMock.Setup(o => o.RetrieveFranchises(It.IsAny<string>())).Returns((IAsyncEnumerable<Franchise>?) null!);
+            var model = new FranchiseManagementViewModel(repoMock.Object);
+            //Verify we are empty before we start
+            Assert.Empty(model.Franchises);
 
-        await model.LoadDataAsync();
+            await model.LoadDataAsync();
 
-        //Check we still have no data
-        Assert.Empty(model.Franchises);
+            //Check we still have no data
+            Assert.Empty(model.Franchises);
 
-        repoMock.Setup(o => o.RetrieveFranchises(It.IsAny<string>())).Returns(new List<Franchise>() {
-        }.ToAsyncEnumerable());
+            repoMock.Setup(o => o.RetrieveFranchises(It.IsAny<string>())).Returns(new List<Franchise>() {
+            }.ToAsyncEnumerable());
 
-        //Make sure this is still empty if we get an empty list back from the repo
-        await model.LoadDataAsync();
+            //Make sure this is still empty if we get an empty list back from the repo
+            await model.LoadDataAsync();
 
-        //Check we still have no data
-        Assert.Empty(model.Franchises);
+            //Check we still have no data
+            Assert.Empty(model.Franchises);
+        });
     }
 
 
     [Fact]
     public async void AttemptToSetFranchiseParentToSelf() {
-        await new TestScheduler().With(async (scheduler) => {
+        await new TestScheduler().WithAsync(async (scheduler) => {
             var repoMock = new Mock<IWallpaperRepository>();
             var model = new FranchiseManagementViewModel(repoMock.Object);
             //Verify we are empty before we start
@@ -92,7 +96,7 @@ public class FranchiseManagementViewModelTests {
 
     [Fact]
     public async void AttemptToSetMultipleFranchiseParents() {
-        await new TestScheduler().With(async (scheduler) => {
+        await new TestScheduler().WithAsync(async (scheduler) => {
             var repoMock = new Mock<IWallpaperRepository>();
             var model = new FranchiseManagementViewModel(repoMock.Object);
             //Verify we are empty before we start
@@ -123,7 +127,7 @@ public class FranchiseManagementViewModelTests {
 
     [Fact]
     public async void AttemptToSetFranchiseParentToNull() {
-        await new TestScheduler().With(async (scheduler) => {
+        await new TestScheduler().WithAsync(async (scheduler) => {
             var repoMock = new Mock<IWallpaperRepository>();
             var model = new FranchiseManagementViewModel(repoMock.Object);
             //Verify we are empty before we start
@@ -149,7 +153,7 @@ public class FranchiseManagementViewModelTests {
 
     [Fact]
     public async void AttemptToSetFranchiseParent() {
-        await new TestScheduler().With(async (scheduler) => {
+        await new TestScheduler().WithAsync(async (scheduler) => {
             var repoMock = new Mock<IWallpaperRepository>();
             var model = new FranchiseManagementViewModel(repoMock.Object);
             //Verify we are empty before we start
@@ -186,28 +190,30 @@ public class FranchiseManagementViewModelTests {
     [InlineData(null)]
     [InlineData("")]
     public async void AttemptToLoadData(string? term) {
-        var repoMock = new Mock<IWallpaperRepository>();
-        repoMock.Setup(o => o.RetrieveFranchises()).Returns(new List<Franchise>() {
-            new Franchise()
-        }.ToAsyncEnumerable());
-        var model = new FranchiseManagementViewModel(repoMock.Object);
+        await new TestScheduler().WithAsync(async (scheduler) => {
+            var repoMock = new Mock<IWallpaperRepository>();
+            repoMock.Setup(o => o.RetrieveFranchises()).Returns(new List<Franchise>() {
+                new Franchise()
+            }.ToAsyncEnumerable());
+            var model = new FranchiseManagementViewModel(repoMock.Object);
 
-        //Ensure we are in a clean initial state
-        Assert.Null(model.SearchText);
-        Assert.Empty(model.Franchises);
-        Assert.Null(model.SelectedFranchise);
+            //Ensure we are in a clean initial state
+            Assert.Null(model.SearchText);
+            Assert.Empty(model.Franchises);
+            Assert.Null(model.SelectedFranchise);
 
-        repoMock.Verify(o => o.RetrieveFranchises(), Times.Never);
+            repoMock.Verify(o => o.RetrieveFranchises(), Times.Never);
 
-        //Now try to do a search
-        await model.LoadDataAsync(term);
+            //Now try to do a search
+            await model.LoadDataAsync(term);
 
-        //Check that the correct repo method was called
-        repoMock.Verify(o => o.RetrieveFranchises(), Times.Once);
-        repoMock.Verify(o => o.RetrieveFranchises(It.IsAny<string>()), Times.Never);
+            //Check that the correct repo method was called
+            repoMock.Verify(o => o.RetrieveFranchises(), Times.Once);
+            repoMock.Verify(o => o.RetrieveFranchises(It.IsAny<string>()), Times.Never);
 
-        //Check data was added
-        Assert.NotEmpty(model.Franchises);
+            //Check data was added
+            Assert.NotEmpty(model.Franchises);
+        });
     }
 
     [Fact]
@@ -230,7 +236,7 @@ public class FranchiseManagementViewModelTests {
 
     [Fact]
     public void DeleteSelectedFranchise() {
-        new TestScheduler().WithAsync(async (scheduler) => {
+        new TestScheduler().With((scheduler) => {
             var repoMock = new Mock<IWallpaperRepository>();
             var model = new FranchiseManagementViewModel(repoMock.Object);
 
@@ -263,7 +269,7 @@ public class FranchiseManagementViewModelTests {
     }
 
     [Fact]
-    public async void AttemptToSaveFranchises() {
+    public void AttemptToSaveFranchises() {
         new TestScheduler().With((scheduler) => {
             var repoMock = new Mock<IWallpaperRepository>();
 
