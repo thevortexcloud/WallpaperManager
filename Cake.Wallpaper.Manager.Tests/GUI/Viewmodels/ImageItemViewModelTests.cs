@@ -110,7 +110,7 @@ public class ImageItemViewModelTests {
         Assert.Single(wallpaper.Franchises);
         Assert.Single(wallpaper.People);
 
-        Assert.Equal(wallpaper.People.First(), converted.People.First());
+        Assert.Equal(wallpaper.People.First(), converted.People?.First());
         Assert.Equal(wallpaper.Franchises.First(), converted.Franchises.First());
     }
 
