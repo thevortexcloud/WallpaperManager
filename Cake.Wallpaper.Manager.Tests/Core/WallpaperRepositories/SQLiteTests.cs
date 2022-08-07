@@ -225,7 +225,7 @@ INSERT INTO Franchise (Id, Name, ParentId) VALUES (2, 'a', 1)"
     [Fact]
     public async void AttemptRetrieveFranchisesWithFilter_NullInputThrows() {
         using (var db = new SqlLiteMemory()) {
-            await Assert.ThrowsAsync<ArgumentNullException>(async () => await db.RetrieveFranchisesAsync(null).ToListAsync());
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await db.RetrieveFranchisesAsync(null!).ToListAsync());
         }
     }
 
