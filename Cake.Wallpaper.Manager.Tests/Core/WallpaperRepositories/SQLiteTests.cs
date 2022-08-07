@@ -230,6 +230,114 @@ INSERT INTO Franchise (Id, Name, ParentId) VALUES (2, 'a', 1)"
     }
 
     [Fact]
+    public async void AttemptToDeleteWallpaperWithNoLinks() {
+        using (var db = new SqlLiteMemory()) {
+            db.ScaffoldDB();
+//Insert the test data
+            var insertWallpapercmd = new SqliteCommand() {
+                CommandText = "INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source) VALUES (1, 'Blah', 0, 'faf', 'fa', '');" +
+                              "INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source) VALUES (2, 'Blah', 0, 'aw', 'fa', '')"
+            };
+            db.ExecuteNonQuery(insertWallpapercmd);
+
+            //Attempt to delete the frist wallpaper
+            await db.DeleteWallpaperAsync(1);
+
+            //Try to retrieve the first wallpaper
+            var retrievecmd = new SqliteCommand() {
+                CommandText = "SELECT * FROM Wallpapers WHERE id = 1",
+                CommandType = CommandType.Text,
+            };
+
+            var result = db.ExecuteScalar<long?>(retrievecmd);
+            //Check we got nothing back since it should no longer exist
+            Assert.Null(result);
+
+            //Now check we have not accidentally deleted the other wallpaper
+            retrievecmd = new SqliteCommand() {
+                CommandText = "SELECT * FROM Wallpapers WHERE id = 2",
+                CommandType = CommandType.Text,
+            };
+
+            result = db.ExecuteScalar<long?>(retrievecmd);
+            Assert.NotNull(result);
+        }
+    }
+
+    [Fact]
+    public async void AttemptToDeleteWallpaperWithLinks() {
+        using (var db = new SqlLiteMemory()) {
+            db.ScaffoldDB();
+//Insert the test data
+            var insertWallpapercmd = new SqliteCommand() {
+                CommandText = "INSERT INTO People (id,Name, PrimaryFranchise) VALUES (1, 'hello', NULL);" +
+                              "INSERT INTO Franchise (id, Name, ParentId) VALUES (1, 'fa', NULL);" +
+                              "INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source) VALUES (1, 'Blah', 0, 'faf', 'fa', '');" +
+                              "INSERT INTO WallpaperPeople (wallpaperid, personid) VALUES (1,1);" +
+                              "INSERT INTO WallpaperFranchise (WallpaperID, FranchiseID) VALUES (1,1);" +
+                              "INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source) VALUES (2, 'Blah', 0, 'aw', 'fa', '');" +
+                              "INSERT INTO WallpaperPeople (wallpaperid, personid) VALUES (2,1);" +
+                              "INSERT INTO WallpaperFranchise (WallpaperID, FranchiseID) VALUES (2,1);",
+            };
+            db.ExecuteNonQuery(insertWallpapercmd);
+
+            //Attempt to delete the frist wallpaper
+            await db.DeleteWallpaperAsync(1);
+
+            //Try to retrieve the first wallpaper
+            var retrievecmd = new SqliteCommand() {
+                CommandText = "SELECT * FROM Wallpapers WHERE id = 1",
+                CommandType = CommandType.Text,
+            };
+
+            var result = db.ExecuteScalar<long?>(retrievecmd);
+            //Check we got nothing back since it should no longer exist
+            Assert.Null(result);
+
+            var wallpaperPersonLinkcommand = new SqliteCommand() {
+                CommandText = "SELECT * FROM WallpaperPeople WHERE WallpaperID = 1",
+                CommandType = CommandType.Text,
+            };
+
+            var personResult = db.ExecuteScalar<long?>(wallpaperPersonLinkcommand);
+            Assert.Null(personResult);
+
+            var wallpaperFranchiseLinkcommand = new SqliteCommand() {
+                CommandText = "SELECT * FROM WallpaperFranchise WHERE WallpaperID = 1",
+                CommandType = CommandType.Text,
+            };
+
+            var franchiseResult = db.ExecuteScalar<long?>(wallpaperFranchiseLinkcommand);
+            Assert.Null(franchiseResult);
+
+            //Now check we have not accidentally deleted the other wallpaper or its links
+            retrievecmd = new SqliteCommand() {
+                CommandText = "SELECT * FROM Wallpapers WHERE id = 2",
+                CommandType = CommandType.Text,
+            };
+
+            result = db.ExecuteScalar<long?>(retrievecmd);
+            Assert.NotNull(result);
+
+            wallpaperPersonLinkcommand = new SqliteCommand() {
+                CommandText = "SELECT * FROM WallpaperPeople WHERE WallpaperID = 2",
+                CommandType = CommandType.Text,
+            };
+
+            personResult = db.ExecuteScalar<long?>(wallpaperPersonLinkcommand);
+            Assert.NotNull(personResult);
+
+            wallpaperFranchiseLinkcommand = new SqliteCommand() {
+                CommandText = "SELECT * FROM WallpaperFranchise WHERE WallpaperID = 2",
+                CommandType = CommandType.Text,
+            };
+
+            franchiseResult = db.ExecuteScalar<long?>(wallpaperFranchiseLinkcommand);
+            Assert.NotNull(franchiseResult);
+        }
+    }
+
+    [Fact]
     public async void AttemptSaveWallpaperWithNoLinksAsync() {
         var wallpaper = new Manager.Core.Models.Wallpaper() {
             Author = "Blah",

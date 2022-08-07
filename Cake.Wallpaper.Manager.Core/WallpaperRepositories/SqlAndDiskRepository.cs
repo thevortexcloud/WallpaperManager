@@ -132,5 +132,45 @@ public class SqlAndDiskRepository : Interfaces.IWallpaperRepository {
             await sqlLite.DeleteFranchiseAsync(franchiseID);
         }
     }
+
+    public async Task TrimWallpapersAsync() {
+        //Check we have anything to validate against
+        var dirinfo = new DirectoryInfo(this._wallpaperPath);
+        if (!dirinfo.Exists) {
+            return;
+        }
+
+        await using (SqlLite sqlLite = new SqlLite(this._connectionString)) {
+            var wallpapers = sqlLite.RetrieveWallpapersAsync();
+            await foreach (var wallpaper in wallpapers) {
+                if (wallpaper?.FileName is null) {
+                    continue;
+                }
+
+                if (!File.Exists(Path.Combine(this._wallpaperPath, wallpaper.FileName))) {
+                    await this.SoftDeleteWallpaperAsync(wallpaper.ID, sqlLite);
+                }
+            }
+        }
+    }
+
+    public async Task SoftDeleteWallpaperAsync(int wallpaperID) {
+        await using (SqlLite sqlLite = new SqlLite(this._connectionString)) {
+            await this.SoftDeleteWallpaperAsync(wallpaperID, sqlLite);
+        }
+    }
+    #endregion
+
+    #region Private methods
+    /// <summary>
+    /// Attempts to remove any metadata about the wallpaper from the repository while leaving the original file intact
+    /// </summary>
+    /// <returns></returns>
+    /// <param name="wallpaperID">The wallpaper to delete</param>
+    /// <param name="sqlLite">The database instance to remove the data from</param>
+    private async Task SoftDeleteWallpaperAsync(int wallpaperID, SqlLite sqlLite) {
+        Console.WriteLine($"Deleting {wallpaperID} from database");
+        await sqlLite.DeleteWallpaperAsync(wallpaperID);
+    }
     #endregion
 }

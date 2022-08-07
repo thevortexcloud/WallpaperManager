@@ -114,7 +114,8 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
 
         public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> NextImagePage { get; }
         public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> PreviousImagePage { get; }
-        public ReactiveCommand<Unit, Unit> Refresh { get; }
+        public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
+        public ReactiveCommand<Unit, Unit> TrimWallpapersCommand { get; }
         public ReactiveCommand<Unit, IEnumerable<PersonViewModel>?> SelectPersonCommand { get; }
         public ReactiveCommand<Unit, Unit> DeletePersonCommand { get; }
         public ReactiveCommand<Unit, IEnumerable<FranchiseSelectListItemViewModel>?> ShowSelectFranchiseCommand { get; }
@@ -144,12 +145,13 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             //Set up our button handlers
             this.NextImagePage = ReactiveCommand.CreateFromTask(NextPageAsync);
             this.PreviousImagePage = ReactiveCommand.CreateFromTask(PreviousPageAsync);
-            this.Refresh = ReactiveCommand.CreateFromTask(RefreshAsync);
+            this.RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync);
             this.SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
             this.DeleteSelectedFranchiseCommand = ReactiveCommand.CreateFromTask(DeleteSelectedFranchiseAsync);
             this.ShowSelectFranchiseCommand = ReactiveCommand.CreateFromTask(ShowSelectFranchiseAsync);
             this.SelectPersonCommand = ReactiveCommand.CreateFromTask(ShowSelectPersonAsync);
             this.DeletePersonCommand = ReactiveCommand.CreateFromTask(DeletePersonAsync);
+            this.TrimWallpapersCommand = ReactiveCommand.CreateFromTask(TrimWallpapersAsync);
 
             this._wallpaperRepository = wallpaperRepository;
             this._programProviders = programProviders;
@@ -165,6 +167,17 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         #endregion
 
         #region Private methods
+        /// <summary>
+        /// Attempts to remove wallpapers which no longer exist
+        /// </summary>
+        private async Task TrimWallpapersAsync() {
+            try {
+                await this._wallpaperRepository.TrimWallpapersAsync();
+            } catch (Exception ex) {
+                await Common.ShowExceptionMessageBoxAsync("There was a problem trimming wallpapers", ex);
+            }
+        }
+
         /// <summary>
         /// Attempts to change the current page to the given value
         /// </summary>
@@ -314,6 +327,8 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// </summary>
         private async Task RefreshAsync() {
             try {
+                await this._wallpaperRepository.TrimWallpapersAsync();
+
                 if (IsLoadingImages) {
                     this._cancellationTokenSource?.Cancel();
                 }

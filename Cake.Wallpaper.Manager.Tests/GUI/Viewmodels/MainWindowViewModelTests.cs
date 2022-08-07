@@ -30,6 +30,23 @@ public sealed class MainWindowViewModelTests {
         });
     }
 
+    [Fact]
+    public void AttemptWallpaperTrim() {
+        new TestScheduler().With((scheduler) => {
+            //Create the mocks
+            var repo = new Mock<IWallpaperRepository>();
+            var providerMock = new Mock<IProgramProvider>();
+
+            //Create the view model
+            var viewModel = new Cake.Wallpaper.Manager.GUI.ViewModels.MainWindowViewModel(repo.Object, new IProgramProvider[] {providerMock.Object});
+            //Verify that the method we are testing has never been called before
+            repo.Verify(o => o.TrimWallpapersAsync(), Times.Never);
+            //Execute the method command which should at some point try to do a trim
+            viewModel.TrimWallpapersCommand.Execute().Subscribe();
+            //Verify that the command attempted to trim
+            repo.Verify(o => o.TrimWallpapersAsync(), Times.Once);
+        });
+    }
 
     [Theory]
     [InlineData("Gabba")]
@@ -50,7 +67,7 @@ public sealed class MainWindowViewModelTests {
             //By default we will have no page data either
             Assert.Empty(viewModel.CurrentPageData);
 
-            viewModel.Refresh.Execute().Subscribe();
+            viewModel.RefreshCommand.Execute().Subscribe();
 
 
             viewModel.NextImagePage.Execute().Subscribe();
@@ -76,8 +93,7 @@ public sealed class MainWindowViewModelTests {
             //By default we will have no page data either
             Assert.Empty(viewModel.CurrentPageData);
 
-            viewModel.Refresh.Execute().Subscribe();
-
+            viewModel.RefreshCommand.Execute().Subscribe();
 
             viewModel.NextImagePage.Execute().Subscribe();
 

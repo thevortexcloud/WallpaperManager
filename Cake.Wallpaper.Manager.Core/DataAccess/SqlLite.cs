@@ -11,6 +11,19 @@ public class SqlLite : SqlLiteBase {
     #endregion
 
     #region Public methods
+    /// <summary>
+    /// Deletes the given wallpaper from the database
+    /// </summary>
+    /// <param name="wallpaperID">The wallpaper to remove</param>
+    public async Task DeleteWallpaperAsync(int wallpaperID) {
+        SqliteCommand cmd = new SqliteCommand() {
+            CommandText = "DELETE FROM Wallpapers WHERE id = @id",
+            CommandType = CommandType.Text,
+        };
+        cmd.Parameters.Add("@id", SqliteType.Integer).Value = wallpaperID;
+        await this.ExecuteNonQueryAsync(cmd);
+    }
+
     public Task InsertFranchiseAsync(Franchise franchise) {
         SqliteCommand cmd = new SqliteCommand() {
             CommandText = @"INSERT INTO main.Franchise (Id, Name, ParentId)

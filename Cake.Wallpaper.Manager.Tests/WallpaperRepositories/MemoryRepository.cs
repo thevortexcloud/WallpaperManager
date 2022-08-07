@@ -77,4 +77,18 @@ public class MemoryRepository : IWallpaperRepository {
         this.Franchises.AddRange(franchise);
         return Task.CompletedTask;
     }
+
+    public Task DeleteFranchiseAsync(int franchiseID) {
+        this.Franchises.Remove(this.Franchises.FirstOrDefault(o => o.ID == franchiseID));
+        return Task.CompletedTask;
+    }
+
+    public Task TrimWallpapersAsync() {
+        return Task.CompletedTask;
+    }
+
+    public Task SoftDeleteWallpaperAsync(int wallpaperID) {
+        this.Wallpapers.RemoveAll(o => o.ID == wallpaperID);
+        return Task.CompletedTask;
+    }
 }

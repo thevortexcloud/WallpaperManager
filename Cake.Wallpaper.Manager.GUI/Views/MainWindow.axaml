@@ -19,128 +19,130 @@
 
 
     <DockPanel VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-        <Menu HorizontalAlignment="Left" DockPanel.Dock="Top">
+        <Menu HorizontalAlignment="Stretch" DockPanel.Dock="Top">
+            <Menu.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <DockPanel HorizontalAlignment="Stretch" />
+                </ItemsPanelTemplate>
+            </Menu.ItemsPanel>
             <MenuItem HorizontalAlignment="Left" Command="{Binding SaveCommand}" Header="Save" />
-            <MenuItem Header="Refresh" Command="{Binding Refresh}" />
+            <MenuItem Header="Refresh" Command="{Binding RefreshCommand}" />
             <MenuItem HorizontalAlignment="Right" Header="Person Management"
                       Click="MenuItem_OpenPersonManagement_OnClick" />
             <MenuItem Header="Franchise Management" Click="MenuItem_OpenFranchiseManagement_OnClick" />
+            <MenuItem Header="Trim Wallpapers" HorizontalAlignment="Right" Command="{Binding TrimWallpapersCommand}" />
         </Menu>
-        <TabControl DockPanel.Dock="Bottom" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch">
-            <TabItem Header="Image Tagging">
-                <Grid ColumnDefinitions="* *" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <Grid VerticalAlignment="Stretch" RowDefinitions="auto * auto" ColumnDefinitions="*"
-                          HorizontalAlignment="Stretch" DockPanel.Dock="Left">
-                        <TextBox Text="{Binding SearchText}" Watermark="Search..." VerticalAlignment="Top"
-                                 HorizontalAlignment="Stretch" />
-                        <ListBox
-                            VirtualizationMode="Simple" SelectedItem="{Binding SelectedImage}" Grid.Row="1"
-                            ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent"
-                            ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Stretch"
-                            Items="{Binding CurrentPageData}">
-                            <ListBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal" />
-                                </ItemsPanelTemplate>
-                            </ListBox.ItemsPanel>
-                        </ListBox>
-                        <StackPanel Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                                    Orientation="Horizontal">
-                            <Button Command="{Binding PreviousImagePage}">Previous</Button>
-                            <NumericUpDown ShowButtonSpinner="False" Value="{Binding CurrentPage}"
-                                           Text="{Binding CurrentPage}"
-                                           Maximum="{Binding TotalPages}" />
-                            <Label Content="{Binding PageInfoString}" />
-                            <Button HorizontalAlignment="Right" Command="{Binding NextImagePage}">Next</Button>
-                        </StackPanel>
-                    </Grid>
-                    <ScrollViewer HorizontalAlignment="Stretch" Grid.Column="1">
-                        <StackPanel Grid.Column="1" Margin="5" Orientation="Vertical"
-                                    HorizontalAlignment="Stretch">
-                            <Image MaxWidth="{Binding SelectedImage.Image.Size.Width, FallbackValue=400}"
-                                   Source="{Binding SelectedImage.Image}"
-                                   Grid.ColumnSpan="2"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Top"
-                                   Margin="0 4">
-                                <Image.ContextMenu>
-                                    <ContextMenu Items="{Binding ProgramProviders}">
-                                    </ContextMenu>
-                                </Image.ContextMenu>
-                            </Image>
-                            <Grid HorizontalAlignment="Stretch" ColumnDefinitions="Auto *"
-                                  RowDefinitions="* auto auto auto auto auto" Grid.Margin="10">
+        <Grid ColumnDefinitions="* *" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid VerticalAlignment="Stretch" RowDefinitions="auto * auto" ColumnDefinitions="*"
+                  HorizontalAlignment="Stretch" DockPanel.Dock="Left">
+                <TextBox Text="{Binding SearchText}" Watermark="Search..." VerticalAlignment="Top"
+                         HorizontalAlignment="Stretch" />
+                <ListBox
+                    VirtualizationMode="Simple" SelectedItem="{Binding SelectedImage}" Grid.Row="1"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="Transparent"
+                    ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Stretch"
+                    Items="{Binding CurrentPageData}">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                </ListBox>
+                <StackPanel Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                            Orientation="Horizontal">
+                    <Button Command="{Binding PreviousImagePage}">Previous</Button>
+                    <NumericUpDown ShowButtonSpinner="False" Value="{Binding CurrentPage}"
+                                   Text="{Binding CurrentPage}"
+                                   Maximum="{Binding TotalPages}" />
+                    <Label Content="{Binding PageInfoString}" />
+                    <Button HorizontalAlignment="Right" Command="{Binding NextImagePage}">Next</Button>
+                </StackPanel>
+            </Grid>
+            <ScrollViewer HorizontalAlignment="Stretch" Grid.Column="1">
+                <StackPanel Grid.Column="1" Margin="5" Orientation="Vertical"
+                            HorizontalAlignment="Stretch">
+                    <Image MaxWidth="{Binding SelectedImage.Image.Size.Width, FallbackValue=400}"
+                           Source="{Binding SelectedImage.Image}"
+                           Grid.ColumnSpan="2"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Top"
+                           Margin="0 4">
+                        <Image.ContextMenu>
+                            <ContextMenu Items="{Binding ProgramProviders}">
+                            </ContextMenu>
+                        </Image.ContextMenu>
+                    </Image>
+                    <Grid HorizontalAlignment="Stretch" ColumnDefinitions="Auto *"
+                          RowDefinitions="* auto auto auto auto auto" Grid.Margin="10">
 
-                                <Label VerticalAlignment="Center" Margin="0 5" Grid.Row="1">File Name</Label>
-                                <Label Margin="0 5" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top"
-                                       Content="{Binding SelectedImage.FileName}">
-                                </Label>
-                                <Label Margin="0 5" Grid.Row="2">Name</Label>
-                                <TextBox Grid.Column="1" Margin="0 5" Grid.Row="2" Text="{Binding SelectedImage.Name}"></TextBox>
-                                <Label Margin="0 5" Grid.Row="3">Author</Label>
-                                <TextBox Grid.Column="1" Grid.Row="3" Margin="0 5"
-                                         Text="{Binding SelectedImage.Author}">
-                                </TextBox>
-                                <Label Grid.Row="4" Margin="0 5">Source</Label>
-                                <TextBox Grid.Column="1" Grid.Row="4" Margin="0 5"
-                                         Text="{Binding SelectedImage.Source}">
-                                </TextBox>
+                        <Label VerticalAlignment="Center" Margin="0 5" Grid.Row="1">File Name</Label>
+                        <Label Margin="0 5" Grid.Row="1" Grid.Column="1" VerticalAlignment="Top"
+                               Content="{Binding SelectedImage.FileName}">
+                        </Label>
+                        <Label Margin="0 5" Grid.Row="2">Name</Label>
+                        <TextBox Grid.Column="1" Margin="0 5" Grid.Row="2" Text="{Binding SelectedImage.Name}"></TextBox>
+                        <Label Margin="0 5" Grid.Row="3">Author</Label>
+                        <TextBox Grid.Column="1" Grid.Row="3" Margin="0 5"
+                                 Text="{Binding SelectedImage.Author}">
+                        </TextBox>
+                        <Label Grid.Row="4" Margin="0 5">Source</Label>
+                        <TextBox Grid.Column="1" Grid.Row="4" Margin="0 5"
+                                 Text="{Binding SelectedImage.Source}">
+                        </TextBox>
 
-                                <ScrollViewer HorizontalAlignment="Stretch" Grid.Row="5" Grid.Column="0"
-                                              Grid.ColumnSpan="2">
-                                    <Grid Grid.RowDefinitions="auto auto">
-                                        <Expander Grid.Row="0" Grid.Column="0" Header="Franchises"
-                                                  IsExpanded="True" HorizontalAlignment="Stretch">
-                                            <DockPanel
-                                                HorizontalAlignment="Stretch">
-                                                <!--   <TextBox DockPanel.Dock="Top" HorizontalAlignment="Stretch"
+                        <ScrollViewer HorizontalAlignment="Stretch" Grid.Row="5" Grid.Column="0"
+                                      Grid.ColumnSpan="2">
+                            <Grid Grid.RowDefinitions="auto auto">
+                                <Expander Grid.Row="0" Grid.Column="0" Header="Franchises"
+                                          IsExpanded="True" HorizontalAlignment="Stretch">
+                                    <DockPanel
+                                        HorizontalAlignment="Stretch">
+                                        <!--   <TextBox DockPanel.Dock="Top" HorizontalAlignment="Stretch"
                                                          Watermark="Search..." />-->
-                                                <ItemsControl DockPanel.Dock="Top"
-                                                              HorizontalAlignment="Stretch"
-                                                              Items="{Binding SelectedImage.Franchises}">
-                                                </ItemsControl>
-                                                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
-                                                    <Button Command="{Binding ShowSelectFranchiseCommand}"
-                                                            Content="Add" />
-                                                    <Button Command="{Binding DeleteSelectedFranchiseCommand}"
-                                                            Content="Delete" />
-                                                </StackPanel>
-                                            </DockPanel>
+                                        <ItemsControl DockPanel.Dock="Top"
+                                                      HorizontalAlignment="Stretch"
+                                                      Items="{Binding SelectedImage.Franchises}">
+                                        </ItemsControl>
+                                        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                                            <Button Command="{Binding ShowSelectFranchiseCommand}"
+                                                    Content="Add" />
+                                            <Button Command="{Binding DeleteSelectedFranchiseCommand}"
+                                                    Content="Delete" />
+                                        </StackPanel>
+                                    </DockPanel>
 
-                                        </Expander>
-                                        <Expander IsExpanded="True" HorizontalAlignment="Stretch" Header="People"
-                                                  Grid.Row="1"
-                                                  Grid.ColumnSpan="2"
-                                                  ExpandDirection="Down">
-                                            <StackPanel HorizontalAlignment="Stretch">
-                                                <ListBox
-                                                    SelectionMode="Multiple"
-                                                    HorizontalAlignment="Stretch"
-                                                    Items="{Binding SelectedImage.People}"
-                                                    SelectedItems="{Binding SelectedImage.SelectedPeople}">
-                                                </ListBox>
+                                </Expander>
+                                <Expander IsExpanded="True" HorizontalAlignment="Stretch" Header="People"
+                                          Grid.Row="1"
+                                          Grid.ColumnSpan="2"
+                                          ExpandDirection="Down">
+                                    <StackPanel HorizontalAlignment="Stretch">
+                                        <ListBox
+                                            SelectionMode="Multiple"
+                                            HorizontalAlignment="Stretch"
+                                            Items="{Binding SelectedImage.People}"
+                                            SelectedItems="{Binding SelectedImage.SelectedPeople}">
+                                        </ListBox>
 
-                                                <Button HorizontalContentAlignment="Center"
-                                                        HorizontalAlignment="Stretch"
-                                                        Command="{Binding DeletePersonCommand}">
-                                                    Remove
-                                                </Button>
-                                                <Button HorizontalAlignment="Stretch"
-                                                        HorizontalContentAlignment="Center"
-                                                        Command="{Binding SelectPersonCommand}">
-                                                    Add
-                                                </Button>
-                                            </StackPanel>
-                                        </Expander>
-                                    </Grid>
-                                </ScrollViewer>
+                                        <Button HorizontalContentAlignment="Center"
+                                                HorizontalAlignment="Stretch"
+                                                Command="{Binding DeletePersonCommand}">
+                                            Remove
+                                        </Button>
+                                        <Button HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Center"
+                                                Command="{Binding SelectPersonCommand}">
+                                            Add
+                                        </Button>
+                                    </StackPanel>
+                                </Expander>
                             </Grid>
-                        </StackPanel>
-                    </ScrollViewer>
-                </Grid>
-            </TabItem>
-        </TabControl>
+                        </ScrollViewer>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
     </DockPanel>
 </Window>

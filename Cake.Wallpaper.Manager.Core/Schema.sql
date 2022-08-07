@@ -64,7 +64,9 @@ create table WallpaperFranchise
 create table WallpaperPeople
 (
     WallpaperID integer not null
-        references Wallpapers,
+        references Wallpapers
+            on delete cascade
+            deferrable initially deferred,
     PersonID    integer not null
         references People
             on delete cascade

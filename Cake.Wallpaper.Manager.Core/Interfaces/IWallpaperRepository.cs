@@ -49,4 +49,20 @@ public interface IWallpaperRepository {
     /// <param name="franchiseID">The franchise to delete</param>
     /// <returns></returns>
     public Task DeleteFranchiseAsync(int franchiseID);
+
+    /// <summary>
+    /// Attempts to remove any wallpapers which no longer exist or don't meet system criteria
+    /// </summary>
+    /// <returns></returns>
+    /// <remarks>
+    /// What constitutes a wallpaper existing is up to each individual implementation. EG it could be the file no longer exists on disk, or the wallpaper is too old
+    /// </remarks>
+    public Task TrimWallpapersAsync();
+
+    /// <summary>
+    /// Attempts to remove any metadata about the wallpaper from the repository while leaving the original file intact
+    /// </summary>
+    /// <returns></returns>
+    /// <param name="wallpaperID">The wallpaper to delete</param>
+    public Task SoftDeleteWallpaperAsync(int wallpaperID);
 }
