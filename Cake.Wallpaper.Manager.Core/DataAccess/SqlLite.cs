@@ -24,23 +24,19 @@ public class SqlLite : SqlLiteBase {
         await this.ExecuteNonQueryAsync(cmd);
     }
 
+    /// <summary>
+    /// Attempts to insert the given franchise into the database
+    /// </summary>
+    /// <param name="franchise">The franchise to insert</param>
+    /// <returns></returns>
     public Task InsertFranchiseAsync(Franchise franchise) {
-        SqliteCommand cmd = new SqliteCommand() {
-            CommandText = @"INSERT INTO main.Franchise (Id, Name, ParentId)
-            values (@id, @Name, @parent)
-            ON CONFLICT(id) DO
-            UPDATE SET
-            Name = @Name,
-            ParentId = @parent
-            WHERE id = @id;"
-        };
-        cmd.Parameters.Add("@id", SqliteType.Integer).Value = franchise.ID == 0 ? DBNull.Value : franchise.ID;
-        cmd.Parameters.Add("@Name", SqliteType.Text).Value = franchise.Name;
-        cmd.Parameters.Add("@parent", SqliteType.Integer).Value = franchise?.ParentID == null ? DBNull.Value : franchise.ParentID;
-
-        return this.ExecuteNonQueryAsync(cmd);
+        return this.InsertFranchiseListAsync(new Franchise[] {franchise});
     }
 
+    /// <summary>
+    /// Attempts to insert the given list of franchises into the database
+    /// </summary>
+    /// <param name="franchises">The list of franchises to insert</param>
     public async Task InsertFranchiseListAsync(IEnumerable<Franchise> franchises) {
         await using (var tran = await this.CreateTransactionAsync()) {
             try {
@@ -88,7 +84,7 @@ WHERE PF.Person = @person"
 
 
     /// <summary>
-    /// Retrieves a list of ALL franchises, complete with correct nesting of child franchises
+    /// Retrieves a list of ALL franchises, complete with depth level of child franchises
     /// </summary>
     /// <returns>A list of all top level and child franchises</returns>
     public IAsyncEnumerable<Franchise> RetrieveFranchisesAsync() {
