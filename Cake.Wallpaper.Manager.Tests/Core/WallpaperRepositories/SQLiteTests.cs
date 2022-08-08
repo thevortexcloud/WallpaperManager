@@ -32,6 +32,14 @@ public class SQLiteTests {
     }
 
     [Fact]
+    public async void InsertNullPerson() {
+        using (var db = new SqlLiteMemory()) {
+            db.ScaffoldDB();
+            await Assert.ThrowsAsync<ArgumentNullException>(() => db.InsertPersonAsync(null!));
+        }
+    }
+
+    [Fact]
     public async void InsertPersonWithFranchise() {
         using (var db = new SqlLiteMemory()) {
             db.ScaffoldDB();
@@ -230,6 +238,89 @@ INSERT INTO Franchise (Id, Name, ParentId) VALUES (2, 'a', 1)"
     }
 
     [Fact]
+    public async void AttemptToRetrieveWallpaperWithNoLinks() {
+        using (var db = new SqlLiteMemory()) {
+            db.ScaffoldDB();
+//Insert the test data
+            var insertWallpapercmd = new SqliteCommand() {
+                CommandText = "INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source) VALUES (1, 'Blah', 0, 'faf', 'fa', '');" +
+                              "INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source) VALUES (2, 'Blah', 0, 'aw', 'fa', '')"
+            };
+            db.ExecuteNonQuery(insertWallpapercmd);
+
+            var wallpapers = await db.RetrieveWallpapersAsync().ToListAsync();
+
+            //Check we get data back
+            Assert.NotNull(wallpapers);
+            Assert.Equal(2, wallpapers.Count);
+
+            foreach (var wallpaper in wallpapers) {
+                Assert.NotNull(wallpaper);
+                Assert.NotEqual(0, wallpaper.ID);
+            }
+        }
+    }
+
+    [Fact]
+    public async void AttemptToRetrieveWallpaperWithPersonLink() {
+        using (var db = new SqlLiteMemory()) {
+            db.ScaffoldDB();
+//Insert the test data
+            var insertWallpapercmd = new SqliteCommand() {
+                CommandText = "INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source) VALUES (1, 'Blah', 0, 'faf', 'fa', '');" +
+                              "INSERT INTO People (id, Name, PrimaryFranchise) values (1, 'Person', NULL);" +
+                              "INSERT INTO WallpaperPeople (WallpaperID, PersonID) VALUES (1, 1)"
+            };
+            db.ExecuteNonQuery(insertWallpapercmd);
+
+            var wallpapers = await db.RetrieveWallpapersAsync().ToListAsync();
+
+            //Make sure we only get a single result back
+            Assert.NotNull(wallpapers);
+            Assert.Single(wallpapers);
+
+            //Check the header values are correct
+            var first = wallpapers.FirstOrDefault()!;
+            Assert.NotNull(first);
+            Assert.Equal(1, first.ID);
+            Assert.Equal("Blah", first.Name);
+            Assert.Equal("faf", first.FileName);
+
+            //Check we got a person back
+            Assert.NotNull(first.People);
+            Assert.NotEmpty(first!.People!);
+            Assert.Equal("Person", first!.People!.First().Name);
+            Assert.Equal(1, first!.People!.First().ID);
+        }
+    }
+
+    [Fact]
+    public async void AttemptToRetrieveWallpaperWithNoLinksAndFilter() {
+        using (var db = new SqlLiteMemory()) {
+            db.ScaffoldDB();
+            //Insert the test data
+            var insertWallpapercmd = new SqliteCommand() {
+                CommandText = "INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source) VALUES (1, 'First', 0, 'faf', 'fa', '');" +
+                              "INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source) VALUES (2, 'Blah', 0, 'aw', 'fa', '')"
+            };
+            db.ExecuteNonQuery(insertWallpapercmd);
+
+            var wallpapers = await db.RetrieveWallpapersAsync("First").ToListAsync();
+            //Check we get data back
+            Assert.NotNull(wallpapers);
+            Assert.Single(wallpapers);
+
+            var first = wallpapers.FirstOrDefault();
+            //Check values match what we inserted
+            Assert.NotNull(first);
+            Assert.Equal(1, first!.ID);
+            Assert.Equal("First", first!.Name);
+            Assert.Equal("faf", first!.FileName);
+        }
+    }
+
+
+    [Fact]
     public async void AttemptToDeleteWallpaperWithNoLinks() {
         using (var db = new SqlLiteMemory()) {
             db.ScaffoldDB();
@@ -334,6 +425,65 @@ INSERT INTO Franchise (Id, Name, ParentId) VALUES (2, 'a', 1)"
 
             franchiseResult = db.ExecuteScalar<long?>(wallpaperFranchiseLinkcommand);
             Assert.NotNull(franchiseResult);
+        }
+    }
+
+    [Fact]
+    public async void AttemptUpdateWallpaperWithNoLinksAsync() {
+        var wallpaper = new Manager.Core.Models.Wallpaper() {
+            Author = "Blah",
+            Name = "Johnson",
+            Source = "The eternal void of suffering",
+            DateAdded = DateTime.Now,
+            FileName = "Megafile.png",
+            FilePath = "/path/to/file",
+            ID = 1,
+        };
+
+        using (var db = new SqlLiteMemory()) {
+            db.ScaffoldDB();
+
+            SqliteCommand command = new SqliteCommand() {
+                CommandText = "INSERT INTO Wallpapers (id, Name, DateAdded, FileName, Author, Source) VALUES (1, 'faf', 0, 'faf', NULL, NULL)"
+            };
+            db.ExecuteNonQuery(command);
+
+            await db.SaveWallpaperAsync(wallpaper);
+
+            command = new SqliteCommand() {
+                CommandText = "SELECT id, Name, DateAdded, FileName, Author, Source FROM Wallpapers"
+            };
+            using (var wallpaperrdr = db.ExecuteReader(command)) {
+                Assert.True(wallpaperrdr.HasRows);
+
+                int wallpaperIdOrdinal = wallpaperrdr.GetOrdinal(nameof(wallpaper.ID)),
+                    wallpaperNameOrdinal = wallpaperrdr.GetOrdinal(nameof(wallpaper.Name)),
+                    dateAddedOrdinal = wallpaperrdr.GetOrdinal(nameof(wallpaper.DateAdded)),
+                    authorOrdinal = wallpaperrdr.GetOrdinal(nameof(wallpaper.Author)),
+                    fileNameOrdinal = wallpaperrdr.GetOrdinal(nameof(wallpaper.FileName)),
+                    sourceOrdinal = wallpaperrdr.GetOrdinal(nameof(wallpaper.Source));
+
+                wallpaperrdr.Read();
+
+                var foundWallpaper = new Manager.Core.Models.Wallpaper() {
+                    ID = wallpaperrdr.GetInt32(wallpaperIdOrdinal),
+                    Name = await wallpaperrdr.IsDBNullAsync(wallpaperNameOrdinal) ? null : wallpaperrdr.GetString(wallpaperNameOrdinal),
+                    Author = await wallpaperrdr.IsDBNullAsync(authorOrdinal) ? null : wallpaperrdr.GetString(authorOrdinal),
+                    Source = await wallpaperrdr.IsDBNullAsync(sourceOrdinal) ? null : wallpaperrdr.GetString(sourceOrdinal),
+                    DateAdded = DateTimeOffset.FromUnixTimeSeconds(wallpaperrdr.GetInt32(dateAddedOrdinal)).DateTime,
+                    FileName = wallpaperrdr.GetString(fileNameOrdinal)
+                };
+
+                Assert.Equal(wallpaper.ID, foundWallpaper.ID);
+                Assert.Equal(wallpaper.Author, foundWallpaper.Author);
+                Assert.Equal(wallpaper.Name, foundWallpaper.Name);
+                Assert.Equal(wallpaper.Source, foundWallpaper.Source);
+                //Database does not store time in milliseconds, so we need to remove them
+                //https://stackoverflow.com/questions/1004698/how-to-truncate-milliseconds-off-of-a-net-datetime
+                Assert.Equal(wallpaper.DateAdded.AddTicks(-(wallpaper.DateAdded.Ticks % TimeSpan.TicksPerSecond)), foundWallpaper.DateAdded.ToLocalTime());
+                Assert.Equal(wallpaper.FileName, foundWallpaper.FileName);
+                // Assert.Equal(wallpaper.FilePath, foundWallpaper.FilePath);
+            }
         }
     }
 
