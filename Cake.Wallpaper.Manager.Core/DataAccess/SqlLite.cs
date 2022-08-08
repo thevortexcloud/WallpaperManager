@@ -118,24 +118,34 @@ WHERE PF.Person = @person"
             throw new ArgumentNullException(nameof(filter));
         }
 
+        //TODO: Check if there is a better way of filtering the CTE without using a second CTE
         SqliteCommand cmd = new SqliteCommand() {
             //Recursive Common Table Expression can find a parent and all children
             CommandText = @"WITH RECURSIVE under_part(id, name, parentid, level) AS (
-            SELECT Id, Name, ParentId, 0
-            FROM Franchise
-            WHERE Franchise.ParentId IS NULL
-            UNION ALL
-            SELECT Franchise.id, Franchise.name, Franchise.parentid, under_part.level + 1
-            FROM Franchise,
-            under_part
-            WHERE Franchise.ParentId = under_part.id
-                ORDER BY under_part.level + 1 DESC,
+    SELECT Id, Name, ParentId, 0
+    FROM Franchise
+    WHERE Franchise.ParentId IS NULL --AND Franchise.Name LIKE '%true%'
+    UNION ALL
+    SELECT Franchise.id, Franchise.name, Franchise.parentid, under_part.level + 1
+    FROM Franchise,
+         under_part
+    WHERE Franchise.ParentId = under_part.id
+    ORDER BY under_part.level + 1 DESC,
              parentid, name
-            )
-            SELECT id, name, parentid, level
-            FROM under_part
-            WHERE name LIKE '%' || @filter || '%'
-            ;"
+),
+--We need to filter all the found results and preserve the hierachy so we can search by parent for ANY children
+               filter(id, name, parentid, level) AS (
+                   SELECT Id, Name, ParentId, level
+                   FROM under_part
+                   WHERE under_part.name LIKE '%' || @filter || '%'
+                   UNION ALL
+                   SELECT Franchise.id, Franchise.name, Franchise.parentid, filter.level + 1
+                   FROM Franchise,
+                        filter
+                   WHERE Franchise.ParentId = filter.id
+               )
+SELECT DISTINCT id, name, parentid, level
+FROM filter parent"
         };
         cmd.Parameters.Add("@filter", SqliteType.Text).Value = filter;
 
