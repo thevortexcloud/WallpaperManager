@@ -31,6 +31,8 @@ namespace Cake.Wallpaper.Manager.Tests.Core.GUI.Viewmodels {
                 repoMock.Verify(o => o.RetrieveFranchises(It.IsAny<string>()), Times.Once);
                 repoMock.Verify(o => o.RetrieveFranchises(), Times.Never);
 
+                scheduler.Start();
+
                 Assert.NotEmpty(viewmodel.DbFranchises);
                 //Nothing should be selected
                 Assert.Empty(viewmodel.SelectedFranchiseSelectListItemViewModels);
@@ -52,6 +54,8 @@ namespace Cake.Wallpaper.Manager.Tests.Core.GUI.Viewmodels {
                 Assert.Null(viewmodel.SearchText);
 
                 await viewmodel.RefreshDataAsync();
+                scheduler.Start();
+
                 repoMock.Verify(o => o.RetrieveFranchises(It.IsAny<string>()), Times.Never);
                 repoMock.Verify(o => o.RetrieveFranchises(), Times.Once);
 
