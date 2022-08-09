@@ -1,4 +1,4 @@
-**NOTE**: If you are viewing this repo on github, you should know it is a simply a mirror of the repo that is hosted on a private gitlab. That said bug reports and what not are welcome.
+**NOTE**: For those viewing this repo on github: This repo is a mirror of the repo that is hosted on a private gitlab. That said bug reports and what not are welcome here.
 
 # Introduction
 
