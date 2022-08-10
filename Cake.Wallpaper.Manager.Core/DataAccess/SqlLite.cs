@@ -112,7 +112,7 @@ WHERE PF.Person = @person"
     /// <summary>
     /// Retrieves a filtered list of franchises, complete with nesting of child franchises if the parent is included in the result
     /// </summary>
-    /// <returns>A list of all top level and child franchises</returns>
+    /// <returns>A filtered list of all top level and child franchises that match the given filter string</returns>
     public IAsyncEnumerable<Franchise> RetrieveFranchisesAsync(string filter) {
         if (filter is null) {
             throw new ArgumentNullException(nameof(filter));
@@ -154,7 +154,7 @@ FROM filter parent"
 
 
     /// <summary>
-    /// Retrieves a list of all wallpapers
+    /// Retrieves a list of all wallpapers that match the given filter, or all wallpapers if no filter is provided
     /// </summary>
     /// <returns>A list of all wallpapers contained in the database</returns>
     public async IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync(string? searchTerm) {
