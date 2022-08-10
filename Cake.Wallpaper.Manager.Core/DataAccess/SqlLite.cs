@@ -225,11 +225,23 @@ WHERE WallpaperID = @wallpaper"
                         }
                     }
 
-                    //TODO: Fix the depth here so it shows the correct depth for the franchise
                     SqliteCommand wallpaperfranchisecmd = new SqliteCommand() {
-                        CommandText = @"SELECT Id, Name, ParentId, 0 as level FROM WallpaperFranchise
-INNER JOIN Franchise F on F.Id = WallpaperFranchise.FranchiseID
-WHERE WallpaperID = @wallpaper"
+                        CommandText = @"WITH RECURSIVE under_part(id, name, parentid, level) AS (
+    SELECT Id, Name, ParentId, 0
+    FROM Franchise
+    WHERE Franchise.ParentId IS NULL --AND Franchise.Name LIKE '%true%'
+    UNION ALL
+    SELECT Franchise.id, Franchise.name, Franchise.parentid, under_part.level + 1
+    FROM Franchise,
+         under_part
+    WHERE Franchise.ParentId = under_part.id
+    ORDER BY under_part.level + 1 DESC,
+             parentid, name
+)
+SELECT id, name, parentid, level
+FROM under_part parent
+INNER JOIN WallpaperFranchise F on F.FranchiseID = parent.id
+WHERE f.WallpaperID = @wallpaper"
                     };
                     wallpaperfranchisecmd.Parameters.Add("@wallpaper", SqliteType.Integer).Value = wallpaper.ID;
 
