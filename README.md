@@ -1,4 +1,4 @@
-**NOTE**: For those viewing this repo on github: This repo is a mirror of the repo that is hosted on a private gitlab. That said bug reports and what not are welcome here.
+**NOTE**: For those viewing this repo on github: This repo is an automated mirror of the repo that is hosted on a private gitlab, as such the CI script is designed to be used on gitlab. That said bug reports and what not are welcome here.
 
 # Introduction
 
