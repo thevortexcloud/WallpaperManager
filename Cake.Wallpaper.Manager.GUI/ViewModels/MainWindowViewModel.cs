@@ -327,8 +327,6 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// </summary>
         private async Task RefreshAsync() {
             try {
-                await this._wallpaperRepository.TrimWallpapersAsync();
-
                 if (IsLoadingImages) {
                     this._cancellationTokenSource?.Cancel();
                 }
