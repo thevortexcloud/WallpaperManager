@@ -35,12 +35,52 @@ public interface IWallpaperRepository {
     /// <returns></returns>
     public Task DeletePersonAsync(int personID);
 
+    /// <summary>
+    /// Retrieves a list of all franchises
+    /// </summary>
+    /// <returns>Every franchise that exists</returns>
     public IAsyncEnumerable<Franchise>? RetrieveFranchises();
+
+    /// <summary>
+    /// Retrieves a list of all franchises that match the given search term
+    /// </summary>
+    /// <param name="searchTerm">The search term to filter the franchises by</param>
+    /// <returns>A filtered list of franchises</returns>
     public IAsyncEnumerable<Franchise>? RetrieveFranchises(string searchTerm);
+
+    /// <summary>
+    /// Retrieves a list of franchises for the given person ID
+    /// </summary>
+    /// <param name="personID">The person to retrieve the franchises for</param>
+    /// <returns>All franchises that the given person belongs to</returns>
     public IAsyncEnumerable<Franchise> RetrieveFranchisesForPerson(int personID);
+
+    /// <summary>
+    /// Attempts to save a wallpaper and all related linked data
+    /// </summary>
+    /// <param name="wallpaper">The wallpaper to save</param>
+    /// <returns></returns>
     public Task SaveWallpaperInfoAsync(Models.Wallpaper wallpaper);
+
+    /// <summary>
+    /// Attempts to save the given person
+    /// </summary>
+    /// <param name="person">The person to save</param>
+    /// <returns></returns>
     public Task SavePersonInfoAsync(Models.Person person);
+
+    /// <summary>
+    /// Attempts to save the given franchise
+    /// </summary>
+    /// <param name="franchise">The franchise to save</param>
+    /// <returns></returns>
     public Task SaveFranchiseInfoAsync(Models.Franchise franchise);
+
+    /// <summary>
+    /// Attempts to save the given list of franchises
+    /// </summary>
+    /// <param name="franchise">The list of franchises to save</param>
+    /// <returns></returns>
     public Task SaveFranchiseInfosAsync(IEnumerable<Models.Franchise> franchise);
 
     /// <summary>
