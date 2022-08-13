@@ -2,8 +2,8 @@
 
 # Introduction
 
-This is a program for tagging and managing a large collection of images. It is primarily intended to be used desktop
-wallpapers.
+This is a program for tagging and managing a large collection of images. It is primarily intended to be used for desktop
+wallpapers. As such it is designed to be used on a desktop.
 
 It allows for categorising images by subject matter (AKA Franchise) and by people in the image (EG characters in a TV
 show).
@@ -12,8 +12,8 @@ All of the UI has been written in Avalonia XAML/C#. As such the entire program i
 has only ever been tested on Linux as such no guarantee is made that it will work on other platforms.
 
 This repository is still **a work in progress** some things do not work at all or may not work well. However most core
-functionality has received a first pass implementation (there is a lot of things that can be optimised) and the program
-is technically usable. There are many planned additional features (such as desktop integration, and possibly ML Net auto
+functionality has received a first pass implementation (there is a lot of things that can be optimised), but the program
+is technically usable. There are many planned additional features (such as KDE desktop integration, and possibly ML Net auto
 tagging). As such the steps below are only provided as a general guide.
 
 # Build instructions
