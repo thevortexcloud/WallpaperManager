@@ -141,7 +141,7 @@ public class PersonManagementViewModel : ViewModelBase {
     /// </summary>
     private void CreateNewPerson() {
         var person = new Person();
-        var viewmodel = new PersonViewModel(person, this._wallpaperRepository);
+        var viewmodel = new PersonViewModel(person, false, this._wallpaperRepository);
         People.Add(viewmodel);
         SelectedPerson = viewmodel;
     }
@@ -159,7 +159,7 @@ public class PersonManagementViewModel : ViewModelBase {
         var peopleViewModels = this.PersonSearchTerm is null ? this._wallpaperRepository.RetrievePeopleAsync() : this._wallpaperRepository.RetrievePeopleAsync(this.PersonSearchTerm);
         if (peopleViewModels is not null) {
             await foreach (var person in peopleViewModels) {
-                var personviewmodel = new PersonViewModel(person, this._wallpaperRepository);
+                var personviewmodel = new PersonViewModel(person, true, this._wallpaperRepository);
                 People.Add(personviewmodel);
             }
         }

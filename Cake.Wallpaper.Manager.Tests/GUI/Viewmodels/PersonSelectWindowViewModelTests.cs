@@ -153,7 +153,7 @@ namespace Cake.Wallpaper.Manager.Tests.Core.GUI.Viewmodels {
             Assert.Empty(model.People);
             Assert.Empty(model.SelectedPeople);
 
-            model.People.Add(new PersonViewModel(person, repoMock.Object));
+            model.People.Add(new PersonViewModel(person, false, repoMock.Object));
 
             Assert.NotEmpty(model.People);
             Assert.Empty(model.SelectedPeople);
@@ -187,7 +187,7 @@ namespace Cake.Wallpaper.Manager.Tests.Core.GUI.Viewmodels {
             Assert.Empty(model.People);
             Assert.Empty(model.SelectedPeople);
 
-            model.People.Add(new PersonViewModel(person, repoMock.Object));
+            model.People.Add(new PersonViewModel(person, false, repoMock.Object));
 
             Assert.NotEmpty(model.People);
             Assert.Empty(model.SelectedPeople);
@@ -218,7 +218,7 @@ namespace Cake.Wallpaper.Manager.Tests.Core.GUI.Viewmodels {
             Assert.Empty(model.People);
             Assert.Empty(model.SelectedPeople);
 
-            model.SelectedPeople.Add(new PersonViewModel(person, repoMock.Object));
+            model.SelectedPeople.Add(new PersonViewModel(person, false, repoMock.Object));
 
             var result = await model.DoneCommand.Execute().FirstOrDefaultAsync();
 

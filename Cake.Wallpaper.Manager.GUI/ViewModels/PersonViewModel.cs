@@ -34,12 +34,14 @@ public class PersonViewModel : ViewModelBase {
 
     #region Private readonly variables
     private readonly Person _person;
+    private readonly bool _loadFranchisesForPerson;
     private readonly IWallpaperRepository _wallpaperRepository;
     #endregion
 
     #region Public constructor
-    public PersonViewModel(Person person, IWallpaperRepository wallpaperRepository) {
+    public PersonViewModel(Person person, bool loadFranchisesForPerson, IWallpaperRepository wallpaperRepository) {
         this._person = person;
+        this._loadFranchisesForPerson = loadFranchisesForPerson;
         this._wallpaperRepository = wallpaperRepository;
     }
     #endregion
@@ -48,10 +50,13 @@ public class PersonViewModel : ViewModelBase {
     /// <summary>
     /// Loads the list of franchises this person belongs to
     /// </summary>
+    /// <remarks>If LoadFranchiseForPerson in the constructor was set to true, it will also load all franchises for the person</remarks>
     public async Task LoadDataAsync() {
         FranchiseSelectListItemViewModels.Clear();
-        await foreach (var franchise in this._wallpaperRepository.RetrieveFranchisesForPerson(this._person.ID)) {
-            FranchiseSelectListItemViewModels.Add(new FranchiseSelectListItemViewModel(franchise, true));
+        if (this._loadFranchisesForPerson) {
+            await foreach (var franchise in this._wallpaperRepository.RetrieveFranchisesForPerson(this._person.ID)) {
+                FranchiseSelectListItemViewModels.Add(new FranchiseSelectListItemViewModel(franchise, true));
+            }
         }
     }
 

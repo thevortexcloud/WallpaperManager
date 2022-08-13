@@ -111,7 +111,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
             }
 
             await foreach (var person in people) {
-                this.People.Add(new PersonViewModel(person, this._wallpaperRepository));
+                this.People.Add(new PersonViewModel(person, false, this._wallpaperRepository));
             }
         }
         #endregion
