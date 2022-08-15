@@ -418,6 +418,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// <param name="term">The search term provided by the user to search for an image by</param>
         private async Task HandleSearchTerm(string term) {
             try {
+                //TODO: THIS WILL NOT ALLOW REFRESHES WITH A SEARCH TERM TO WORK
                 if (term != this.LastSearchTerm || string.IsNullOrWhiteSpace(term)) {
                     //Iterate through all the image data we have and dispose of it or we will run out of memory very quickly
                     Parallel.ForEach(Images, (o, p) => { o.Dispose(); });
