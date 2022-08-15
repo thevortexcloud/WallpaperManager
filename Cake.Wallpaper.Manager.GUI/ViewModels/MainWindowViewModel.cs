@@ -423,8 +423,8 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                     //Iterate through all the image data we have and dispose of it or we will run out of memory very quickly
                     Parallel.ForEach(Images, (o, p) => { o.Dispose(); });
                     Parallel.ForEach(this.CurrentPageData, (o, p) => { o.Dispose(); });
-                    CurrentPageData.Clear();
 
+                    CurrentPageData.Clear();
                     Images.Clear();
 
                     var wallpapers = string.IsNullOrWhiteSpace(term) ? this._wallpaperRepository.RetrieveWallpapersAsync() : this._wallpaperRepository.RetrieveWallpapersAsync(term);
