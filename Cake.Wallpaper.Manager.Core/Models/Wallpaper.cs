@@ -55,12 +55,12 @@ public sealed record Wallpaper {
     /// <summary>
     /// A list of franchises this wallpaper belongs to
     /// </summary>
-    public List<Franchise>? Franchises { get; init; } = new List<Franchise>();
+    public List<Franchise> Franchises { get; init; } = new List<Franchise>();
 
     /// <summary>
     /// A list of people the wallpaper depicts
     /// </summary>
-    public List<Person>? People { get; init; } = new List<Person>();
+    public List<Person> People { get; init; } = new List<Person>();
 
     /// <summary>
     /// Loads the actual binary data the <see cref="FilePath"/> refers to and returns a read only stream of it

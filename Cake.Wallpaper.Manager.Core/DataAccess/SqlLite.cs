@@ -258,7 +258,7 @@ WHERE f.WallpaperID = @wallpaper"
     /// </summary>
     /// <returns>A list of all wallpapers contained in the database</returns>
     public IAsyncEnumerable<Models.Wallpaper> RetrieveWallpapersAsync() {
-        return this.RetrieveWallpapersAsync(null);
+        return this.RetrieveWallpapersAsync(null!);
     }
 
     /// <summary>
