@@ -150,7 +150,7 @@ public sealed class ImageItemViewModel : ViewModelBase, IDisposable {
         var wallpaperPeople = this._wallpaper.People;
         if (wallpaperPeople != null) {
             foreach (var person in wallpaperPeople) {
-                this.People.Add(new PersonViewModel(person, repository));
+                this.People.Add(new PersonViewModel(person, true, repository));
             }
         }
 
