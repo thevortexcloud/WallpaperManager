@@ -12,7 +12,7 @@ All of the UI has been written in Avalonia XAML/C#. As such the entire program i
 has only ever been tested on Linux as such no guarantee is made that it will work on other platforms.
 
 This repository is still **a work in progress** some things do not work at all or may not work well. However most core
-functionality has received a first pass implementation (there is many lot can be optimised or improved), but the program
+functionality has received a first pass implementation (there is many things that can be optimised or improved), but the program
 is technically usable. There are also many planned additional features (such as KDE desktop integration, and possibly ML Net auto
 tagging). As such the steps below are only provided as a general guide.
 
