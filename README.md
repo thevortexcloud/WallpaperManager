@@ -1,19 +1,19 @@
-**NOTE**: For those viewing this repo on github: This repo is an automated mirror of the repo that is hosted on a private gitlab, as such the CI script is designed to be used on gitlab. That said bug reports and what not are welcome here.
+**NOTE**: For those viewing this repo on github: This repo is an automated mirror of the repo that is hosted on a private gitlab, as such the CI script is designed to be used on gitlab. That said bug reports, suggestionns, and what not are welcome here.
 
 # Introduction
 
 This is a program for tagging and managing a large collection of images. It is primarily intended to be used for desktop
 wallpapers. As such it is designed to be used on a desktop.
 
-It allows for categorising images by subject matter (AKA Franchise) and by people in the image (EG characters in a TV
-show).
+It allows for categorising images by subject matter/origin (AKA Franchise) and by people in the image (EG characters from a TV
+show). It also allows for including related metadata such as the author of the image, and where it was obtained from.
 
 All of the UI has been written in Avalonia XAML/C#. As such the entire program is in theory cross platform. However it
 has only ever been tested on Linux as such no guarantee is made that it will work on other platforms.
 
 This repository is still **a work in progress** some things do not work at all or may not work well. However most core
-functionality has received a first pass implementation (there is a lot of things that can be optimised), but the program
-is technically usable. There are many planned additional features (such as KDE desktop integration, and possibly ML Net auto
+functionality has received a first pass implementation (there is many lot can be optimised or improved), but the program
+is technically usable. There are also many planned additional features (such as KDE desktop integration, and possibly ML Net auto
 tagging). As such the steps below are only provided as a general guide.
 
 # Build instructions
