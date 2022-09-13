@@ -334,7 +334,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                 _cancellationTokenSource = new CancellationTokenSource();
                 var token = this._cancellationTokenSource.Token;
 
-                await this.HandleSearchTerm(this.SearchText);
+                await this.HandleSearchTerm(this.SearchText, true);
                 await this.ChangePageAsync(null, token);
             } catch (Exception ex) {
                 await Common.ShowExceptionMessageBoxAsync("There was a problem refreshing", ex);
@@ -401,7 +401,7 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
                     this._cancellationTokenSource?.Cancel();
                 }
 
-                await this.HandleSearchTerm(term);
+                await this.HandleSearchTerm(term, false);
 
                 _cancellationTokenSource = new CancellationTokenSource();
                 var token = this._cancellationTokenSource.Token;
@@ -416,10 +416,9 @@ namespace Cake.Wallpaper.Manager.GUI.ViewModels {
         /// Handles the user's search input and populates the backing lists
         /// </summary>
         /// <param name="term">The search term provided by the user to search for an image by</param>
-        private async Task HandleSearchTerm(string term) {
+        private async Task HandleSearchTerm(string term, bool forceRefresh) {
             try {
-                //TODO: THIS WILL NOT ALLOW REFRESHES WITH A SEARCH TERM TO WORK
-                if (term != this.LastSearchTerm || string.IsNullOrWhiteSpace(term)) {
+                if (forceRefresh || term != this.LastSearchTerm || string.IsNullOrWhiteSpace(term)) {
                     //Iterate through all the image data we have and dispose of it or we will run out of memory very quickly
                     Parallel.ForEach(Images, (o, p) => { o.Dispose(); });
                     Parallel.ForEach(this.CurrentPageData, (o, p) => { o.Dispose(); });
