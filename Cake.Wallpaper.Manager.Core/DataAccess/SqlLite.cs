@@ -161,7 +161,13 @@ FROM filter parent"
         SqliteCommand? wallpapercmd = null;
         if (string.IsNullOrWhiteSpace(searchTerm)) {
             wallpapercmd = new SqliteCommand() {
-                CommandText = @"SELECT id,Name,DateAdded, Author, FileName, Source FROM Wallpapers",
+                CommandText = @"SELECT id,
+       Name,
+       DateAdded,
+       Author,
+       FileName,
+       Source 
+FROM Wallpapers",
             };
         } else {
             wallpapercmd = new SqliteCommand() {
